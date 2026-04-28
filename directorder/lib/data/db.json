@@ -1,0 +1,36 @@
+{
+  "restaurant": {
+    "id": "demo-id",
+    "slug": "demo-burger",
+    "name": "Demo Burger",
+    "description": "Las mejores hamburguesas de la ciudad 🔥",
+    "whatsapp": "+5491100000000",
+    "primary_color": "#c0392b",
+    "secondary_color": "#e74c3c",
+    "is_open": true,
+    "currency": "ARS",
+    "delivery_enabled": true,
+    "pickup_enabled": true,
+    "table_mode_enabled": true
+  },
+  "categories": [
+    { "id": "cat-1", "name": "Hamburguesas", "emoji": "🍔", "sort_order": 0, "is_active": true },
+    { "id": "cat-2", "name": "Acompañamientos", "emoji": "🍟", "sort_order": 1, "is_active": true },
+    { "id": "cat-3", "name": "Bebidas", "emoji": "🥤", "sort_order": 2, "is_active": true },
+    { "id": "cat-4", "name": "Postres", "emoji": "🍰", "sort_order": 3, "is_active": true }
+  ],
+  "products": [
+    { "id": "prod-1", "category_id": "cat-1", "name": "Hamburguesa Clásica", "description": "Carne 150g, lechuga, tomate, cebolla y aderezo especial", "price": 4500, "is_featured": true, "image_url": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=500&q=80", "is_available": true, "sort_order": 0 },
+    { "id": "prod-2", "category_id": "cat-1", "name": "Hamburguesa Doble", "description": "Doble carne 300g, doble cheddar, bacon crocante y BBQ ahumada", "price": 6200, "is_featured": true, "image_url": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?auto=format&fit=crop&w=500&q=80", "is_available": true, "sort_order": 1 },
+    { "id": "prod-3", "category_id": "cat-1", "name": "Veggie Burger", "description": "Medallón de garbanzos, palta, rúcula y salsa de mostaza", "price": 4800, "is_featured": false, "image_url": "https://images.unsplash.com/photo-1520072959219-c595dc870360?auto=format&fit=crop&w=500&q=80", "is_available": true, "sort_order": 2 },
+    { "id": "prod-4", "category_id": "cat-1", "name": "Burger Cheddar Extreme", "description": "Carne 200g bañada en cheddar fundido con aros de cebolla", "price": 5500, "is_featured": true, "image_url": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&w=500&q=80", "is_available": true, "sort_order": 3 },
+    { "id": "prod-5", "category_id": "cat-2", "name": "Papas Fritas", "description": "Porción generosa de papas crocantes con sal marina", "price": 2200, "is_featured": false, "image_url": "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=500&q=80", "is_available": true, "sort_order": 4 },
+    { "id": "prod-6", "category_id": "cat-2", "name": "Papas con Cheddar y Bacon", "description": "Papas crocantes cubiertas con cheddar y bacon desmenuzado", "price": 3200, "is_featured": true, "image_url": "https://images.unsplash.com/photo-1585109649139-366815a0d713?auto=format&fit=crop&w=500&q=80", "is_available": true, "sort_order": 5 },
+    { "id": "prod-7", "category_id": "cat-2", "name": "Aros de Cebolla", "description": "Aros crocantes rebozados con salsa BBQ", "price": 2500, "is_featured": false, "image_url": "https://images.unsplash.com/photo-1639024471283-03518883512d?auto=format&fit=crop&w=500&q=80", "is_available": true, "sort_order": 6 },
+    { "id": "prod-8", "category_id": "cat-3", "name": "Coca Cola 500ml", "description": "Coca Cola bien fría", "price": 1500, "is_featured": false, "image_url": "https://images.unsplash.com/photo-1629203851122-3726ecdf080e?auto=format&fit=crop&w=500&q=80", "is_available": true, "sort_order": 7 },
+    { "id": "prod-9", "category_id": "cat-3", "name": "Agua Mineral", "description": "Agua mineral sin gas 500ml", "price": 1000, "is_featured": false, "image_url": null, "is_available": true, "sort_order": 8 },
+    { "id": "prod-10", "category_id": "cat-3", "name": "Cerveza Artesanal IPA", "description": "Cerveza IPA artesanal de la casa, 473ml", "price": 3200, "is_featured": false, "image_url": "https://images.unsplash.com/photo-1535958636474-b021ee887b13?auto=format&fit=crop&w=500&q=80", "is_available": true, "sort_order": 9 },
+    { "id": "prod-11", "category_id": "cat-4", "name": "Brownie con Helado", "description": "Brownie tibio de chocolate con helado de vainilla y dulce de leche", "price": 3500, "is_featured": true, "image_url": "https://images.unsplash.com/photo-1564355808539-22fda35bed7e?auto=format&fit=crop&w=500&q=80", "is_available": true, "sort_order": 10 },
+    { "id": "prod-12", "category_id": "cat-4", "name": "Cheesecake de Frutos Rojos", "description": "New York cheesecake con coulis de frutos rojos", "price": 3200, "is_featured": false, "image_url": "https://images.unsplash.com/photo-1533134242443-d4fd215305ad?auto=format&fit=crop&w=500&q=80", "is_available": true, "sort_order": 11 }
+  ]
+}

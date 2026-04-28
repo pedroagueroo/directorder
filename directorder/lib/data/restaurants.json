@@ -1,0 +1,30 @@
+[
+  {
+    "id": "demo-id",
+    "slug": "demo-burger",
+    "name": "Demo Burger",
+    "description": "Las mejores hamburguesas de la ciudad 🔥",
+    "whatsapp": "+5491100000000",
+    "primary_color": "#c0392b",
+    "secondary_color": "#e74c3c",
+    "is_open": true,
+    "currency": "ARS",
+    "delivery_enabled": true,
+    "pickup_enabled": true,
+    "table_mode_enabled": true
+  },
+  {
+    "id": "rest-1777321281725",
+    "slug": "giungivalen",
+    "name": "Mi Restaurante",
+    "description": "Configura tu descripción desde el panel.",
+    "whatsapp": "",
+    "primary_color": "#e85d04",
+    "secondary_color": "#f48c06",
+    "is_open": false,
+    "currency": "ARS",
+    "delivery_enabled": true,
+    "pickup_enabled": true,
+    "table_mode_enabled": false
+  }
+]

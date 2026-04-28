@@ -1,0 +1,26 @@
+[
+  {
+    "id": "user-owner",
+    "email": "admin@demoburger.com",
+    "password": "admin",
+    "role": "owner",
+    "restaurant_id": "demo-id",
+    "name": "Dueño Demo"
+  },
+  {
+    "id": "user-staff",
+    "email": "staff@demoburger.com",
+    "password": "staff",
+    "role": "employee",
+    "restaurant_id": "demo-id",
+    "name": "Cocinero"
+  },
+  {
+    "id": "user-1777321281726",
+    "email": "giungivalen@gmail.com",
+    "password": "valen0107",
+    "role": "owner",
+    "restaurant_id": "rest-1777321281725",
+    "name": "giungivalen"
+  }
+]
