@@ -116,11 +116,11 @@ async function migrateFunctions() {
     } else {
       const { rows: [r] } = await client.query(`
         INSERT INTO public.restaurants (slug, name, description, whatsapp, primary_color, secondary_color, is_open)
-        VALUES ('demo-burger', 'Demo Burger', 'Las mejores hamburguesas de la ciudad 🔥', '+5491100000000', '#c0392b', '#e74c3c', true)
+        VALUES ('demo-burger', 'Burger House', NULL, '+5491100000000', '#c0392b', '#e74c3c', true)
         RETURNING id;
       `);
       rid = r.id;
-      console.log('  ✅ Restaurante "Demo Burger" creado');
+      console.log('  ✅ Restaurante demo creado (El Candil Burger House)');
     }
 
     // Categories

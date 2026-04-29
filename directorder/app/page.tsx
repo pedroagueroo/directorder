@@ -30,8 +30,8 @@ export default function Home() {
       {/* Hero */}
       <main className="relative z-10 max-w-7xl mx-auto px-6 sm:px-12 pt-20 sm:pt-32 pb-20">
         <div className="text-center max-w-4xl mx-auto">
-          <div className="inline-block mb-6 px-4 py-2 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-sm font-bold">
-            🚀 La plataforma #1 para restaurantes independientes
+          <div className="inline-block mb-6 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/70 text-sm font-medium tracking-tight">
+            Menú digital y pedidos directos, sin comisiones por pedido
           </div>
           
           <h1 className="text-5xl sm:text-7xl lg:text-8xl font-black tracking-tight leading-[0.9] mb-8">
@@ -48,8 +48,8 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link href="/demo-burger" className="px-8 py-4 rounded-2xl font-extrabold text-lg bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-[0_8px_30px_rgba(234,88,12,0.4)] hover:shadow-[0_8px_40px_rgba(234,88,12,0.6)] transition-all hover:-translate-y-1 active:scale-95">
-              🍔 Ver Demo en Vivo
+            <Link href="/demo-burger" className="px-8 py-4 rounded-2xl font-semibold text-lg bg-gradient-to-r from-orange-500/90 to-amber-600/90 text-white shadow-lg shadow-black/20 hover:shadow-xl transition-all hover:-translate-y-0.5 active:scale-[0.99]">
+              Ver menú de demostración
             </Link>
             <Link href="/login" className="px-8 py-4 rounded-2xl font-extrabold text-lg bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all backdrop-blur-sm">
               Crear mi Restaurante →
@@ -88,7 +88,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="relative z-10 border-t border-white/5 py-8 text-center text-white/30 font-medium text-sm">
-        © {new Date().getFullYear()} DirectOrder — Hecho con 🧡 en Argentina
+        © {new Date().getFullYear()} DirectOrder — Argentina
       </footer>
     </div>
   )

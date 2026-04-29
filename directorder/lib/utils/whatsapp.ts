@@ -9,45 +9,75 @@ type CheckoutData = {
   notes?: string
 }
 
+const SEP = '────────────────────'
+
 export function generateWhatsAppMessage(
   restaurant: Restaurant,
   items: CartItem[],
   data: CheckoutData
 ): string {
-  const typeEmoji = {
-    delivery: '🛵 Delivery',
-    pickup: '🏪 Retiro en local',
-    table: '🪑 Mesa'
+  const orderTypeLine = {
+    delivery: '🛵 Delivery a domicilio',
+    pickup: '🏪 Retiro en el local',
+    table: '🪑 Pedido en mesa'
   }
 
-  const itemLines = items
-    .map(i => {
-      let line = `  • ${i.quantity}x ${i.name} — ${formatCurrency(i.price * i.quantity, restaurant.currency)}`
-      if (i.notes) line += `\n      _📝 ${i.notes}_`
-      return line
+  const when = new Intl.DateTimeFormat('es-AR', {
+    dateStyle: 'short',
+    timeStyle: 'short'
+  }).format(new Date())
+
+  const itemBlocks = items
+    .map((i, idx) => {
+      const lineTotal = formatCurrency(i.price * i.quantity, restaurant.currency)
+      const unitHint =
+        i.quantity > 1
+          ? `\n   _${i.quantity} × ${formatCurrency(i.price, restaurant.currency)} c/u_`
+          : ''
+      let block = `${idx + 1}. *${i.quantity}×* ${i.name}${unitHint}\n   *${lineTotal}*`
+      if (i.notes?.trim()) {
+        block += `\n   _${i.notes.trim()}_`
+      }
+      return block
     })
-    .join('\n')
+    .join('\n\n')
 
   const total = items.reduce((s, i) => s + i.price * i.quantity, 0)
+  const totalStr = formatCurrency(total, restaurant.currency)
 
-  const msg = [
-    `🍽️ *NUEVO PEDIDO — ${restaurant.name}*`,
+  const parts: (string | null)[] = [
+    SEP,
+    '*Nuevo pedido*',
+    `*${restaurant.name}*`,
+    SEP,
     '',
-    `👤 *Cliente:* ${data.customerName}`,
-    `📦 *Tipo:* ${typeEmoji[data.orderType]}`,
-    data.address ? `📍 *Dirección:* ${data.address}` : null,
-    data.tableNumber ? `🪑 *Mesa:* ${data.tableNumber}` : null,
+    '*Cliente*',
+    data.customerName.trim(),
     '',
-    '*Detalle del pedido:*',
-    itemLines,
+    '*Tipo de pedido*',
+    orderTypeLine[data.orderType],
+    data.address?.trim()
+      ? ['', '*Dirección*', data.address.trim()].join('\n')
+      : null,
+    data.tableNumber?.trim()
+      ? ['', '*Mesa*', data.tableNumber.trim()].join('\n')
+      : null,
     '',
-    `💰 *Total: ${formatCurrency(total, restaurant.currency)}*`,
-    data.notes ? `\n📝 *Notas:* ${data.notes}` : null,
+    SEP,
+    `*Pedido* _(${items.length} ${items.length === 1 ? 'ítem' : 'ítems'})_`,
     '',
-    `_Pedido realizado desde directorder.app/${restaurant.slug}_`
-  ].filter(Boolean).join('\n')
+    itemBlocks,
+    '',
+    SEP,
+    '*Total a pagar*',
+    `*${totalStr}*`,
+    SEP,
+    data.notes?.trim() ? ['', '*Indicaciones*', data.notes.trim()].join('\n') : null,
+    '',
+    `_DirectOrder · ${restaurant.slug} · ${when}_`
+  ]
 
-  return msg
+  return parts.filter((x): x is string => x !== null && x !== undefined).join('\n')
 }
 
 export function getWhatsAppUrl(phone: string, message: string): string {

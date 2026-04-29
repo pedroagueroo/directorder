@@ -1,49 +1,89 @@
 import type { Restaurant } from '@/lib/types/database'
 import Image from 'next/image'
 
+/** Imagen por defecto: hamburguesas y mesa — encaja con la marca */
+const DEFAULT_BANNER =
+  'https://images.unsplash.com/photo-1572802419224-296b224a5eec?auto=format&fit=crop&w=1920&q=88'
+
 export default function MenuHeader({ restaurant }: { restaurant: Restaurant }) {
+  const banner = restaurant.banner_url?.trim() || DEFAULT_BANNER
+
   return (
-    <div className="relative w-full h-[300px] sm:h-[400px] flex items-end justify-center pb-8 overflow-hidden lg:rounded-b-[2.5rem] shadow-2xl">
-      <div 
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ 
-          backgroundImage: `url(${restaurant.banner_url || 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&q=80'})`,
-          backgroundColor: restaurant.primary_color || '#e85d04'
-        }}
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-      
-      <div className="relative z-10 text-center px-4 max-w-2xl mx-auto flex flex-col items-center">
-        {restaurant.logo_url && (
-          <Image 
-            src={restaurant.logo_url} 
-            alt={restaurant.name}
-            width={128}
-            height={128}
-            className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white shadow-xl mb-4 object-cover"
+    <header className="relative z-0">
+      <div className="relative h-[300px] w-full overflow-hidden sm:h-[380px] md:h-[420px] lg:rounded-b-[2rem] shadow-[0_20px_50px_-28px_rgba(45,35,30,0.45)]">
+        <Image
+          src={banner}
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-[center_42%] scale-[1.02]"
+        />
+        {/* Contraste arriba para profundidad */}
+        <div
+          className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/5 to-transparent pointer-events-none sm:from-black/30"
+          aria-hidden
+        />
+        {/* Fundido al color de página: sin “manchón” blanco duro */}
+        <div
+          className="absolute inset-0 bg-gradient-to-t from-background from-[8%] via-background/75 via-[38%] via-background/25 via-[62%] to-transparent to-[100%] pointer-events-none"
+          aria-hidden
+        />
+        <div
+          className="absolute inset-x-0 bottom-0 h-[40%] bg-gradient-to-t from-background via-background/40 to-transparent pointer-events-none"
+          aria-hidden
+        />
+      </div>
+
+      <div className="relative z-10 -mt-16 sm:-mt-24 px-5 sm:px-8 pb-10 sm:pb-14 max-w-2xl mx-auto flex flex-col items-center text-center">
+        {restaurant.logo_url ? (
+          <div className="mb-5 -mt-2 sm:-mt-4 relative">
+            <Image
+              src={restaurant.logo_url}
+              alt={restaurant.name}
+              width={96}
+              height={96}
+              className="w-[4.5rem] h-[4.5rem] sm:w-24 sm:h-24 rounded-2xl object-cover shadow-lg ring-1 ring-black/5 bg-card"
+            />
+          </div>
+        ) : (
+          <div
+            className="mb-5 h-1 w-14 rounded-full bg-gradient-to-r from-primary/20 via-primary to-primary/20 shadow-sm"
+            aria-hidden
           />
         )}
-        <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-2 tracking-tight drop-shadow-md">
+
+        <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.42em] text-muted-foreground mb-3 sm:mb-4">
+          Menú online
+        </p>
+
+        <h1 className="font-display text-[clamp(2.125rem,5.5vw,3.5rem)] leading-[1.08] font-medium tracking-[-0.02em] text-foreground max-w-[16ch]">
           {restaurant.name}
         </h1>
-        {restaurant.description && (
-          <p className="text-white/90 text-sm sm:text-lg font-medium max-w-md drop-shadow">
+
+        {restaurant.description ? (
+          <p className="mt-5 text-muted-foreground text-sm sm:text-[15px] max-w-md leading-relaxed font-normal">
             {restaurant.description}
           </p>
-        )}
-        
-        <div className="mt-5 flex gap-3">
+        ) : null}
+
+        <div className="mt-8 sm:mt-10">
           {restaurant.is_open ? (
-            <span className="px-4 py-1.5 rounded-full bg-emerald-500/20 text-emerald-100 border border-emerald-400/50 text-sm font-semibold backdrop-blur-md shadow-sm">
-              ✨ Abierto Ahora
+            <span className="inline-flex items-center gap-2.5 rounded-full border border-emerald-800/10 bg-emerald-950/5 px-4 py-2.5 text-sm font-medium text-emerald-900 shadow-sm backdrop-blur-md dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-100">
+              <span className="relative flex h-2 w-2 shrink-0">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-35" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-600 dark:bg-emerald-400" />
+              </span>
+              Abierto ahora
             </span>
           ) : (
-            <span className="px-4 py-1.5 rounded-full bg-rose-500/20 text-rose-100 border border-rose-400/50 text-sm font-semibold backdrop-blur-md shadow-sm">
-              🌙 Cerrado
+            <span className="inline-flex items-center gap-2.5 rounded-full border border-border bg-muted/80 px-4 py-2.5 text-sm font-medium text-muted-foreground backdrop-blur-md">
+              <span className="h-2 w-2 rounded-full bg-muted-foreground/50 shrink-0" aria-hidden />
+              Cerrado en este momento
             </span>
           )}
         </div>
       </div>
-    </div>
+    </header>
   )
 }

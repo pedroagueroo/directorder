@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   if (!restaurant) return { title: 'No encontrado' }
   return {
     title: restaurant.name,
-    description: restaurant.description,
+    description: restaurant.description ?? `Menú online — ${restaurant.name}`,
   }
 }
 
@@ -23,7 +23,7 @@ export default async function RestaurantPage({ params }: { params: { slug: strin
   const products = db.getProducts(restaurant.id)
 
   return (
-    <main>
+    <main className="min-h-screen bg-background bg-dots-pattern pb-28 sm:pb-32">
       <MenuHeader restaurant={restaurant} />
       <CategoryFilter categories={categories} />
       <FeaturedProducts products={products.filter((p: any) => p.is_featured)} />

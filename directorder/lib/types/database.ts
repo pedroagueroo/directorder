@@ -38,6 +38,7 @@ export type Product = {
   compare_price: number | null
   image_url: string | null
   tags: string[]
+  ingredients?: string[]
   is_featured: boolean
   is_available: boolean
   stock: number | null
