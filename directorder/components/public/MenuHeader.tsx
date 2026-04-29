@@ -10,7 +10,7 @@ export default function MenuHeader({ restaurant }: { restaurant: Restaurant }) {
 
   return (
     <header className="relative z-0">
-      <div className="relative h-[300px] w-full overflow-hidden sm:h-[380px] md:h-[420px] lg:rounded-b-[2rem] shadow-[0_20px_50px_-28px_rgba(45,35,30,0.45)]">
+      <div className="relative h-[216px] w-full overflow-hidden sm:h-[292px] md:h-[328px] lg:rounded-b-[2rem] shadow-[0_20px_50px_-28px_rgba(45,35,30,0.45)]">
         <Image
           src={banner}
           alt=""
@@ -26,7 +26,7 @@ export default function MenuHeader({ restaurant }: { restaurant: Restaurant }) {
         />
         {/* Fundido al color de página: sin “manchón” blanco duro */}
         <div
-          className="absolute inset-0 bg-gradient-to-t from-background from-[8%] via-background/75 via-[38%] via-background/25 via-[62%] to-transparent to-[100%] pointer-events-none"
+          className="absolute inset-0 bg-gradient-to-t from-background from-10% via-background/55 to-transparent pointer-events-none"
           aria-hidden
         />
         <div
@@ -37,7 +37,7 @@ export default function MenuHeader({ restaurant }: { restaurant: Restaurant }) {
 
       <div className="relative z-10 -mt-16 sm:-mt-24 px-5 sm:px-8 pb-10 sm:pb-14 max-w-2xl mx-auto flex flex-col items-center text-center">
         {restaurant.logo_url ? (
-          <div className="mb-5 -mt-2 sm:-mt-4 relative">
+          <div className="mb-2 -mt-0.5 sm:-mt-1 relative">
             <Image
               src={restaurant.logo_url}
               alt={restaurant.name}
@@ -48,12 +48,12 @@ export default function MenuHeader({ restaurant }: { restaurant: Restaurant }) {
           </div>
         ) : (
           <div
-            className="mb-5 h-1 w-14 rounded-full bg-gradient-to-r from-primary/20 via-primary to-primary/20 shadow-sm"
+            className="mb-2 h-1 w-14 rounded-full bg-gradient-to-r from-primary/20 via-primary to-primary/20 shadow-sm"
             aria-hidden
           />
         )}
 
-        <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.42em] text-muted-foreground mb-3 sm:mb-4">
+        <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.42em] text-muted-foreground mb-1 sm:mb-2">
           Menú online
         </p>
 
@@ -71,7 +71,7 @@ export default function MenuHeader({ restaurant }: { restaurant: Restaurant }) {
           {restaurant.is_open ? (
             <span className="inline-flex items-center gap-2.5 rounded-full border border-emerald-800/10 bg-emerald-950/5 px-4 py-2.5 text-sm font-medium text-emerald-900 shadow-sm backdrop-blur-md dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-100">
               <span className="relative flex h-2 w-2 shrink-0">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-35" />
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-40" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-600 dark:bg-emerald-400" />
               </span>
               Abierto ahora

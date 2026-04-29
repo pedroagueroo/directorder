@@ -61,6 +61,10 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
 
       const deliveryAddress = type === 'delivery' ? address.trim() : undefined
       const orderNotes = type === 'delivery' && notes.trim() ? notes.trim() : undefined
+      const deliveryFee =
+        type === 'delivery' && restaurant.delivery_enabled !== false
+          ? Number((restaurant as { delivery_fee?: number }).delivery_fee) || 0
+          : 0
 
       await createOrder({
         restaurantId: restaurant.id,
@@ -76,7 +80,8 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
         customerName: name,
         orderType: type,
         address: deliveryAddress,
-        notes: orderNotes
+        notes: orderNotes,
+        deliveryFee: deliveryFee > 0 ? deliveryFee : undefined,
       })
 
       window.open(getWhatsAppUrl(restaurant.whatsapp || '', msg), '_blank')
@@ -104,12 +109,12 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-foreground/25 backdrop-blur-[2px] flex items-end sm:items-center justify-center animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 bg-foreground/25 backdrop-blur-[2px] flex items-end sm:items-center justify-center animate-in fade-in duration-200 overscroll-none touch-pan-y"
       onClick={onClose}
       role="presentation"
     >
       <div
-        className="bg-card w-full sm:w-[480px] rounded-t-2xl sm:rounded-2xl h-[88vh] sm:h-auto sm:max-h-[90vh] flex flex-col shadow-2xl border border-border animate-in slide-in-from-bottom-10 duration-200"
+        className="bg-card w-full sm:w-[480px] rounded-t-2xl sm:rounded-2xl max-h-[min(92dvh,calc(100dvh-0.5rem))] h-[min(92dvh,calc(100dvh-0.5rem))] sm:h-auto sm:max-h-[90vh] flex flex-col shadow-2xl border border-border animate-in slide-in-from-bottom-10 duration-200"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -146,7 +151,7 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
           </div>
         </div>
 
-        <div className="overflow-y-auto p-5 flex flex-col gap-6 flex-grow pb-6">
+        <div className="modal-scroll overflow-y-auto p-5 flex flex-col gap-6 flex-1 min-h-0 pb-6">
           <div className="flex flex-col gap-3">
             {cart.items.length === 0 ? (
               <p className="text-center text-muted-foreground py-6 text-sm">El carrito está vacío</p>
@@ -167,15 +172,15 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
                     <button
                       type="button"
                       onClick={() => cart.updateQuantity(item.cartItemId, item.quantity - 1)}
-                      className="w-9 h-9 flex items-center justify-center text-lg font-medium text-foreground hover:bg-card rounded-lg transition-colors"
+                      className="min-h-11 min-w-11 touch-manipulation flex items-center justify-center text-lg font-medium text-foreground hover:bg-card rounded-lg transition-colors sm:min-h-9 sm:min-w-9"
                     >
                       −
                     </button>
-                    <span className="font-semibold w-6 text-center tabular-nums text-sm">{item.quantity}</span>
+                    <span className="font-semibold w-8 text-center tabular-nums text-sm">{item.quantity}</span>
                     <button
                       type="button"
                       onClick={() => cart.updateQuantity(item.cartItemId, item.quantity + 1)}
-                      className="w-9 h-9 flex items-center justify-center text-lg font-medium text-foreground hover:bg-card rounded-lg transition-colors"
+                      className="min-h-11 min-w-11 touch-manipulation flex items-center justify-center text-lg font-medium text-foreground hover:bg-card rounded-lg transition-colors sm:min-h-9 sm:min-w-9"
                     >
                       +
                     </button>
@@ -197,7 +202,7 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
                   setType('delivery')
                   setAddressError('')
                 }}
-                className={`py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`min-h-11 touch-manipulation py-2.5 rounded-lg text-sm font-medium transition-colors active:scale-[0.98] ${
                   type === 'delivery' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -209,7 +214,7 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
                   setType('pickup')
                   setAddressError('')
                 }}
-                className={`py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`min-h-11 touch-manipulation py-2.5 rounded-lg text-sm font-medium transition-colors active:scale-[0.98] ${
                   type === 'pickup' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -222,7 +227,7 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
                     setType('table')
                     setAddressError('')
                   }}
-                  className={`py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                  className={`min-h-11 touch-manipulation py-2.5 rounded-lg text-sm font-medium transition-colors active:scale-[0.98] ${
                     type === 'table' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
@@ -328,7 +333,7 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
           )}
         </div>
 
-        <div className="p-5 border-t border-border bg-muted/20 sm:rounded-b-2xl shrink-0 space-y-3">
+        <div className="p-5 pb-safe border-t border-border bg-muted/20 sm:rounded-b-2xl shrink-0 space-y-3">
           <div className="flex justify-between items-baseline px-0.5">
             <span className="text-sm font-medium text-muted-foreground">Total estimado</span>
             <span className="font-semibold text-2xl tabular-nums text-foreground">${cart.total()}</span>
@@ -337,7 +342,7 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
             type="button"
             disabled={cart.items.length === 0 || isSubmitting}
             onClick={handleCheckout}
-            className="w-full py-3.5 rounded-xl font-semibold text-[15px] flex justify-center items-center gap-2 transition-opacity bg-[#128C7E] text-white hover:bg-[#0f7a6e] disabled:opacity-45 disabled:pointer-events-none shadow-sm"
+            className="w-full min-h-12 touch-manipulation py-3.5 rounded-xl font-semibold text-[15px] flex justify-center items-center gap-2 transition-opacity bg-[#128C7E] text-white hover:bg-[#0f7a6e] disabled:opacity-40 disabled:pointer-events-none shadow-sm active:scale-[0.99]"
           >
             <span>{submitBusyLabel ?? 'Enviar pedido por WhatsApp'}</span>
             {!isSubmitting && (

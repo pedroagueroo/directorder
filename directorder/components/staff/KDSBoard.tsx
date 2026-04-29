@@ -31,8 +31,8 @@ export default function KDSBoard({ orders, onUpdateStatus }: { orders: Order[], 
   const activeOrders = orders.filter(o => ['pending','preparing','ready'].includes(o.status))
 
   return (
-    <div className="h-screen bg-background flex flex-col">
-      <div className="p-4 sm:p-6 bg-card border-b border-border shadow-sm z-10 flex justify-between items-center shrink-0">
+    <div className="flex h-[100dvh] min-h-0 flex-col bg-background">
+      <div className="px-4 pb-4 pt-[max(0.75rem,env(safe-area-inset-top,0px))] sm:p-6 bg-card border-b border-border shadow-sm z-10 flex flex-wrap gap-3 justify-between items-center shrink-0">
         <div className="flex items-center gap-4">
           <a href="/admin/dashboard" className="w-10 h-10 rounded-xl bg-muted hover:bg-muted-foreground/20 flex items-center justify-center transition-colors text-xl font-bold">
             ←
@@ -45,7 +45,7 @@ export default function KDSBoard({ orders, onUpdateStatus }: { orders: Order[], 
       </div>
 
       <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
-        <div className="flex flex-1 overflow-x-auto p-4 sm:p-6 gap-6 hide-scrollbar bg-dots-pattern">
+        <div className="flex flex-1 min-h-0 overflow-x-auto overflow-y-hidden p-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] sm:p-6 gap-4 sm:gap-6 hide-scrollbar bg-dots-pattern touch-pan-x">
           {COLUMNS.map(col => (
             <KDSColumn 
               key={col.id}

@@ -6,20 +6,25 @@ export function useOrders(restaurantId: string) {
   const [loading, setLoading] = useState(true)
 
   const fetchOrders = useCallback(async () => {
+    void restaurantId
     try {
-      const res = await fetch('/api/orders')
+      const res = await fetch('/api/orders', { credentials: 'include' })
+      if (res.status === 401) {
+        setOrders([])
+        return
+      }
       if (!res.ok) throw new Error('API error')
       const data = await res.json()
-      
-      const activeOrders = data.filter((o: any) => 
+
+      const activeOrders = data.filter((o: any) =>
         ['pending', 'preparing', 'ready'].includes(o.status)
       )
-      
+
       setOrders((prev) => {
-        // Detect new pending orders to play sound
         if (prev.length > 0) {
-          const newOrders = activeOrders.filter((ao: any) => 
-            ao.status === 'pending' && !prev.find((po: any) => po.id === ao.id)
+          const newOrders = activeOrders.filter(
+            (ao: any) =>
+              ao.status === 'pending' && !prev.find((po: any) => po.id === ao.id)
           )
           if (newOrders.length > 0) playNewOrderSound()
         }
@@ -30,24 +35,39 @@ export function useOrders(restaurantId: string) {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [restaurantId])
 
   useEffect(() => {
     fetchOrders()
-    const interval = setInterval(fetchOrders, 3000) // Poll every 3s
-    return () => clearInterval(interval)
+    const id = setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        fetchOrders()
+      }
+    }, 3000)
+    const onVis = () => {
+      if (document.visibilityState === 'visible') fetchOrders()
+    }
+    document.addEventListener('visibilitychange', onVis)
+    return () => {
+      clearInterval(id)
+      document.removeEventListener('visibilitychange', onVis)
+    }
   }, [fetchOrders])
 
   const updateStatus = async (orderId: string, status: string) => {
-    // Optimistic update
-    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o))
-    
-    await fetch('/api/orders', {
+    setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status } : o)))
+
+    const res = await fetch('/api/orders', {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'updateStatus', orderId, status })
+      body: JSON.stringify({ action: 'updateStatus', orderId, status }),
     })
-    
+
+    if (!res.ok) {
+      await fetchOrders()
+      return
+    }
     fetchOrders()
   }
 

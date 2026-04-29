@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
   :root {
     --background: 40 40% 97%;
     --foreground: 24 28% 11%;
@@ -80,5 +84,21 @@
 
   .featured-carousel::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--muted-foreground) / 0.55);
+  }
+
+  /* iOS/Android: barra inferior / notch */
+  .pb-safe {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .pb-safe-bar {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  .modal-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
 }

@@ -1,6 +1,66 @@
 [
-  { "id": "cat-1", "restaurant_id": "demo-id", "name": "Hamburguesas", "emoji": "🍔", "sort_order": 0, "is_active": true },
-  { "id": "cat-2", "restaurant_id": "demo-id", "name": "Acompañamientos", "emoji": "🍟", "sort_order": 1, "is_active": true },
-  { "id": "cat-3", "restaurant_id": "demo-id", "name": "Bebidas", "emoji": "🥤", "sort_order": 2, "is_active": true },
-  { "id": "cat-4", "restaurant_id": "demo-id", "name": "Postres", "emoji": "🍰", "sort_order": 3, "is_active": true }
+  {
+    "id": "cat-1",
+    "restaurant_id": "demo-id",
+    "name": "Hamburguesas",
+    "emoji": "🍔",
+    "sort_order": 0,
+    "is_active": true
+  },
+  {
+    "id": "cat-2",
+    "restaurant_id": "demo-id",
+    "name": "Acompañamientos",
+    "emoji": "🍟",
+    "sort_order": 1,
+    "is_active": true
+  },
+  {
+    "id": "cat-3",
+    "restaurant_id": "demo-id",
+    "name": "Bebidas",
+    "emoji": "🥤",
+    "sort_order": 2,
+    "is_active": true
+  },
+  {
+    "id": "cat-4",
+    "restaurant_id": "demo-id",
+    "name": "Postres",
+    "emoji": "🍰",
+    "sort_order": 3,
+    "is_active": true
+  },
+  {
+    "id": "cat-1777428397034-owqk",
+    "restaurant_id": "rest-1777427833257",
+    "name": "Hamburguesas",
+    "emoji": "🍔",
+    "sort_order": 0,
+    "is_active": true
+  },
+  {
+    "id": "cat-1777428397035-ruf4",
+    "restaurant_id": "rest-1777427833257",
+    "name": "Acompañamientos",
+    "emoji": "🍟",
+    "sort_order": 1,
+    "is_active": true
+  },
+  {
+    "id": "cat-1777428397035-ud0e",
+    "restaurant_id": "rest-1777427833257",
+    "name": "Bebidas",
+    "emoji": "🥤",
+    "sort_order": 2,
+    "is_active": true
+  },
+  {
+    "id": "cat-1777428397036-fqu6",
+    "restaurant_id": "rest-1777427833257",
+    "name": "Postres",
+    "emoji": "🍰",
+    "sort_order": 3,
+    "is_active": true
+  }
 ]

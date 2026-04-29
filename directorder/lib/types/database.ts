@@ -59,8 +59,8 @@ export type Order = {
   customer_phone: string | null
   delivery_address: string | null
   subtotal: number
-  delivery_fee: number
-  discount: number
+  delivery_fee?: number
+  discount?: number
   total: number
   notes: string | null
   source: string | null
@@ -69,13 +69,13 @@ export type Order = {
   ready_at: string | null
   delivered_at: string | null
   created_at: string
-  updated_at: string
+  updated_at?: string
   order_items?: OrderItem[]
 }
 
 export type OrderItem = {
   id: string
-  order_id: string
+  order_id?: string
   product_id: string | null
   product_name: string
   product_price: number

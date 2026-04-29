@@ -1,12 +1,10 @@
-'use client'
-import { useOrders } from '@/lib/hooks/useOrders'
-import KDSBoard from '@/components/staff/KDSBoard'
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
+import StaffClient from './StaffClient'
 
 export default function StaffPage() {
-  const restaurantId = 'demo-id'
-  const { orders, loading, updateStatus } = useOrders(restaurantId)
+  const restaurantId = cookies().get('auth-restaurant-id')?.value
+  if (!restaurantId) redirect('/login')
 
-  if (loading) return <div>Cargando cocina...</div>
-
-  return <KDSBoard orders={orders} onUpdateStatus={updateStatus} />
+  return <StaffClient restaurantId={restaurantId} />
 }

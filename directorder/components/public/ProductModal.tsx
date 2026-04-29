@@ -47,12 +47,12 @@ export default function ProductModal({ product, onClose }: { product: Product; o
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-foreground/30 backdrop-blur-[2px] flex items-end sm:items-center justify-center animate-in fade-in duration-200 p-0 sm:p-4"
+      className="fixed inset-0 z-50 bg-foreground/30 backdrop-blur-[2px] flex items-end sm:items-center justify-center animate-in fade-in duration-200 p-0 sm:p-4 overscroll-none touch-pan-y"
       onClick={onClose}
       role="presentation"
     >
       <div
-        className="bg-card w-full sm:w-[500px] rounded-t-2xl sm:rounded-2xl h-[92vh] sm:h-auto sm:max-h-[90vh] flex flex-col shadow-2xl border border-border animate-in slide-in-from-bottom-10 duration-200 overflow-hidden relative"
+        className="bg-card w-full sm:w-[500px] rounded-t-2xl sm:rounded-2xl max-h-[min(94dvh,calc(100dvh-0.5rem))] h-[min(94dvh,calc(100dvh-0.5rem))] sm:h-auto sm:max-h-[90vh] flex flex-col shadow-2xl border border-border animate-in slide-in-from-bottom-10 duration-200 overflow-hidden relative"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -61,7 +61,7 @@ export default function ProductModal({ product, onClose }: { product: Product; o
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-3 right-3 z-10 w-10 h-10 bg-card/95 border border-border text-foreground rounded-xl flex items-center justify-center hover:bg-muted transition-colors"
+          className="absolute top-[max(0.75rem,env(safe-area-inset-top,0px))] right-3 z-10 min-h-11 min-w-11 touch-manipulation bg-card/95 border border-border text-foreground rounded-xl flex items-center justify-center hover:bg-muted transition-colors sm:top-3 sm:min-h-10 sm:min-w-10"
           aria-label="Cerrar"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -90,7 +90,7 @@ export default function ProductModal({ product, onClose }: { product: Product; o
           <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent pointer-events-none" />
         </div>
 
-        <div className="px-5 -mt-4 relative z-10 flex-grow overflow-y-auto pb-4">
+        <div className="modal-scroll px-5 -mt-4 relative z-10 flex-1 min-h-0 overflow-y-auto pb-4">
           <h2 id="product-modal-title" className="text-2xl font-semibold text-foreground tracking-tight mb-2">
             {product.name}
           </h2>
@@ -107,7 +107,7 @@ export default function ProductModal({ product, onClose }: { product: Product; o
                 {product.ingredients.map((ing) => (
                   <label
                     key={ing}
-                    className="flex items-center justify-between p-3 rounded-xl border border-border bg-background cursor-pointer hover:bg-muted/40 transition-colors"
+                    className="flex min-h-11 items-center justify-between gap-3 p-3 rounded-xl border border-border bg-background cursor-pointer hover:bg-muted/40 transition-colors touch-manipulation"
                   >
                     <span className={`text-sm font-medium ${!ingredients[ing] ? 'line-through text-muted-foreground' : ''}`}>
                       {ing}
@@ -148,15 +148,15 @@ export default function ProductModal({ product, onClose }: { product: Product; o
               <button
                 type="button"
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="w-10 h-10 flex items-center justify-center text-xl font-medium bg-card rounded-lg border border-border hover:bg-muted transition-colors"
+                className="min-h-12 min-w-12 touch-manipulation flex items-center justify-center text-xl font-medium bg-card rounded-lg border border-border hover:bg-muted transition-colors sm:min-h-10 sm:min-w-10"
               >
                 −
               </button>
-              <span className="font-semibold text-lg w-8 text-center tabular-nums">{quantity}</span>
+              <span className="font-semibold text-lg w-10 text-center tabular-nums">{quantity}</span>
               <button
                 type="button"
                 onClick={() => setQuantity(quantity + 1)}
-                className="w-10 h-10 flex items-center justify-center text-xl font-medium bg-card rounded-lg border border-border hover:bg-muted transition-colors"
+                className="min-h-12 min-w-12 touch-manipulation flex items-center justify-center text-xl font-medium bg-card rounded-lg border border-border hover:bg-muted transition-colors sm:min-h-10 sm:min-w-10"
               >
                 +
               </button>
@@ -164,11 +164,11 @@ export default function ProductModal({ product, onClose }: { product: Product; o
           </div>
         </div>
 
-        <div className="p-5 border-t border-border bg-muted/20 shrink-0">
+        <div className="p-5 pb-safe border-t border-border bg-muted/20 shrink-0">
           <button
             type="button"
             onClick={handleAddToCart}
-            className="w-full py-3.5 bg-primary text-primary-foreground rounded-xl font-semibold text-base hover:opacity-[0.95] transition-opacity shadow-sm"
+            className="w-full min-h-12 touch-manipulation py-3.5 bg-primary text-primary-foreground rounded-xl font-semibold text-base hover:opacity-[0.95] transition-opacity shadow-sm active:scale-[0.99]"
           >
             Agregar al pedido · ${(product.price * quantity).toLocaleString('es-AR')}
           </button>

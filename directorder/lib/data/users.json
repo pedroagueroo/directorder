@@ -22,5 +22,13 @@
     "role": "owner",
     "restaurant_id": "rest-1777321281725",
     "name": "giungivalen"
+  },
+  {
+    "id": "user-1777427833258",
+    "email": "prueba@gmail.com",
+    "password": "prueba",
+    "role": "owner",
+    "restaurant_id": "rest-1777427833257",
+    "name": "prueba"
   }
 ]

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fraunces, Outfit } from "next/font/google";
 import "./globals.css";
 
@@ -20,6 +20,18 @@ export const metadata: Metadata = {
   description: "SaaS multi-tenant para restaurantes. Menú digital, pedidos por WhatsApp, cocina en tiempo real y analytics. Sin comisiones.",
 };
 
+/** Viewport móvil: escala correcta, notch/home indicator (iOS), tema en barra de estado */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "hsl(40 40% 97%)" },
+    { media: "(prefers-color-scheme: dark)", color: "hsl(24 18% 9%)" },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -27,7 +39,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className={`${outfit.variable} ${fraunces.variable}`}>
-      <body className={`${outfit.className} min-h-screen antialiased bg-background text-foreground`}>
+      <body className={`${outfit.className} min-h-screen min-h-[100dvh] antialiased bg-background text-foreground overflow-x-hidden`}>
         {children}
       </body>
     </html>

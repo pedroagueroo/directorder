@@ -7,6 +7,8 @@ type CheckoutData = {
   address?: string
   tableNumber?: string
   notes?: string
+  /** Costo de envío (ARS) ya aplicado en el pedido; se suma al total del mensaje */
+  deliveryFee?: number
 }
 
 const SEP = '────────────────────'
@@ -42,8 +44,11 @@ export function generateWhatsAppMessage(
     })
     .join('\n\n')
 
-  const total = items.reduce((s, i) => s + i.price * i.quantity, 0)
+  const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0)
+  const fee = Math.max(0, Number(data.deliveryFee) || 0)
+  const total = subtotal + fee
   const totalStr = formatCurrency(total, restaurant.currency)
+  const subtotalStr = formatCurrency(subtotal, restaurant.currency)
 
   const parts: (string | null)[] = [
     SEP,
@@ -67,6 +72,12 @@ export function generateWhatsAppMessage(
     `*Pedido* _(${items.length} ${items.length === 1 ? 'ítem' : 'ítems'})_`,
     '',
     itemBlocks,
+    '',
+    fee > 0
+      ? ['', '*Subtotal productos*', subtotalStr, '', '*Envío*', formatCurrency(fee, restaurant.currency)].join(
+          '\n'
+        )
+      : null,
     '',
     SEP,
     '*Total a pagar*',

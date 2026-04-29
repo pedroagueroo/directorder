@@ -23,7 +23,7 @@ export default async function RestaurantPage({ params }: { params: { slug: strin
   const products = db.getProducts(restaurant.id)
 
   return (
-    <main className="min-h-screen bg-background bg-dots-pattern pb-28 sm:pb-32">
+    <main className="min-h-screen min-h-[100dvh] bg-background bg-dots-pattern pb-[calc(7rem+env(safe-area-inset-bottom,0px))] sm:pb-[calc(8rem+env(safe-area-inset-bottom,0px))]">
       <MenuHeader restaurant={restaurant} />
       <CategoryFilter categories={categories} />
       <FeaturedProducts products={products.filter((p: any) => p.is_featured)} />

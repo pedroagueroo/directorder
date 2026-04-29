@@ -40,5 +40,215 @@
         "subtotal": 4500
       }
     ]
+  },
+  {
+    "id": "ord-1777417313700",
+    "order_number": 2,
+    "created_at": "2026-04-28T23:01:53.700Z",
+    "status": "pending",
+    "restaurant_id": "demo-id",
+    "customer_id": null,
+    "customer_name": "valentino giungi",
+    "type": "delivery",
+    "delivery_address": "las araucarias 1200",
+    "subtotal": 14400,
+    "total": 14400,
+    "notes": "",
+    "source": "web",
+    "order_items": [
+      {
+        "id": "item-1777417313700-0.6387100299531256",
+        "product_id": "prod-8",
+        "product_name": "Coca Cola 500ml",
+        "product_price": 1500,
+        "quantity": 1,
+        "subtotal": 1500
+      },
+      {
+        "id": "item-1777417313700-0.474091396125655",
+        "product_id": "prod-1",
+        "product_name": "Hamburguesa Clásica",
+        "product_price": 4500,
+        "quantity": 1,
+        "notes": "Sin Carne 150g",
+        "subtotal": 4500
+      },
+      {
+        "id": "item-1777417313700-0.3813982882997058",
+        "product_id": "prod-2",
+        "product_name": "Hamburguesa Doble",
+        "product_price": 6200,
+        "quantity": 1,
+        "notes": "aura",
+        "subtotal": 6200
+      },
+      {
+        "id": "item-1777417313700-0.4262030673689041",
+        "product_id": "prod-5",
+        "product_name": "Papas Fritas",
+        "product_price": 2200,
+        "quantity": 1,
+        "subtotal": 2200
+      }
+    ]
+  },
+  {
+    "id": "ord-1777417506464",
+    "order_number": 3,
+    "created_at": "2026-04-28T23:05:06.464Z",
+    "status": "pending",
+    "restaurant_id": "demo-id",
+    "customer_id": null,
+    "customer_name": "valentino",
+    "type": "delivery",
+    "delivery_address": "las araucarias",
+    "subtotal": 4500,
+    "total": 4500,
+    "notes": "",
+    "source": "web",
+    "order_items": [
+      {
+        "id": "item-1777417506463-0.9429042716847842",
+        "product_id": "prod-1",
+        "product_name": "Hamburguesa Clásica",
+        "product_price": 4500,
+        "quantity": 1,
+        "notes": "Sin Lechuga, Sin Tomate, Sin Cebolla, Sin Aderezo | quiero solo la carne",
+        "subtotal": 4500
+      }
+    ]
+  },
+  {
+    "id": "ord-1777417972981",
+    "order_number": 4,
+    "created_at": "2026-04-28T23:12:52.981Z",
+    "status": "pending",
+    "restaurant_id": "demo-id",
+    "customer_id": null,
+    "customer_name": "valentino giungi",
+    "type": "pickup",
+    "delivery_address": "",
+    "subtotal": 9500,
+    "total": 9500,
+    "notes": "",
+    "source": "web",
+    "order_items": [
+      {
+        "id": "item-1777417972980-0.15011659818450784",
+        "product_id": "prod-1",
+        "product_name": "Hamburguesa Clásica",
+        "product_price": 4500,
+        "quantity": 1,
+        "notes": "Sin Lechuga, Sin Tomate, Sin Cebolla, Sin Aderezo | quiero la carne muy cruda",
+        "subtotal": 4500
+      },
+      {
+        "id": "item-1777417972980-0.18606839862757374",
+        "product_id": "prod-8",
+        "product_name": "Coca Cola 500ml",
+        "product_price": 1500,
+        "quantity": 1,
+        "subtotal": 1500
+      },
+      {
+        "id": "item-1777417972980-0.146400830109354",
+        "product_id": "prod-11",
+        "product_name": "Brownie con Helado",
+        "product_price": 3500,
+        "quantity": 1,
+        "subtotal": 3500
+      }
+    ]
+  },
+  {
+    "id": "ord-1777419256012",
+    "order_number": 5,
+    "created_at": "2026-04-28T23:34:16.012Z",
+    "status": "pending",
+    "restaurant_id": "demo-id",
+    "customer_id": null,
+    "customer_name": "valentino giungi",
+    "type": "delivery",
+    "delivery_address": "las araucarias",
+    "subtotal": 4500,
+    "total": 4500,
+    "notes": "",
+    "source": "web",
+    "order_items": [
+      {
+        "id": "item-1777419256012-0.3079002294354911",
+        "product_id": "prod-1",
+        "product_name": "Hamburguesa Clásica",
+        "product_price": 4500,
+        "quantity": 1,
+        "notes": "Sin Lechuga | ponerle un poco de aura\n",
+        "subtotal": 4500
+      }
+    ]
+  },
+  {
+    "id": "ord-1777419604286",
+    "order_number": 6,
+    "created_at": "2026-04-28T23:40:04.286Z",
+    "status": "pending",
+    "restaurant_id": "demo-id",
+    "customer_id": null,
+    "customer_name": "valentino giungi",
+    "type": "delivery",
+    "delivery_address": "rojas 1000038998",
+    "subtotal": 6700,
+    "total": 6700,
+    "source": "web",
+    "order_items": [
+      {
+        "id": "item-1777419604286-0.144385968353119",
+        "product_id": "prod-1",
+        "product_name": "Hamburguesa Clásica",
+        "product_price": 4500,
+        "quantity": 1,
+        "subtotal": 4500
+      },
+      {
+        "id": "item-1777419604286-0.09166715918978086",
+        "product_id": "prod-5",
+        "product_name": "Papas Fritas",
+        "product_price": 2200,
+        "quantity": 1,
+        "subtotal": 2200
+      }
+    ]
+  },
+  {
+    "id": "ord-1777420761234",
+    "order_number": 7,
+    "created_at": "2026-04-28T23:59:21.234Z",
+    "status": "pending",
+    "restaurant_id": "demo-id",
+    "customer_id": null,
+    "customer_name": "valentino giungi",
+    "type": "delivery",
+    "delivery_address": "la pampa 1098747615",
+    "subtotal": 10000,
+    "total": 10000,
+    "source": "web",
+    "order_items": [
+      {
+        "id": "item-1777420761234-0.5580711745266584",
+        "product_id": "prod-1",
+        "product_name": "Hamburguesa Clásica",
+        "product_price": 4500,
+        "quantity": 1,
+        "notes": "Sin Lechuga, Sin Aderezo",
+        "subtotal": 4500
+      },
+      {
+        "id": "item-1777420761234-0.5423289073649333",
+        "product_id": "prod-4",
+        "product_name": "Burger Cheddar Extreme",
+        "product_price": 5500,
+        "quantity": 1,
+        "subtotal": 5500
+      }
+    ]
   }
 ]
