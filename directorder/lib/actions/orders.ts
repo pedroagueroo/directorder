@@ -17,7 +17,40 @@ type CreateOrderInput = {
 
 export async function createOrder(input: CreateOrderInput) {
   const restaurant = db.getRestaurantById(input.restaurantId)
-  const subtotal = input.items.reduce((s, i) => s + i.price * i.quantity, 0)
+  if (!restaurant) {
+    throw new Error('No se encontró el local.')
+  }
+  if (!restaurant.is_open) {
+    throw new Error('El local está cerrado en este momento. No se pueden tomar pedidos.')
+  }
+  if (!input.items.length) {
+    throw new Error('El pedido no puede estar vacio.')
+  }
+
+  const products = db.getAllProducts(input.restaurantId)
+  const productMap = new Map(products.map((product) => [product.id, product]))
+  const validatedItems = input.items.map((item) => {
+    const product = productMap.get(item.productId)
+    if (!product || product.is_active === false) {
+      throw new Error(`El producto "${item.name}" ya no esta activo en el menu.`)
+    }
+    if (item.quantity <= 0) {
+      throw new Error(`Cantidad invalida para "${product.name}".`)
+    }
+
+    const unitPrice = Number(product.price)
+    return {
+      id: randomUUID(),
+      product_id: item.productId,
+      product_name: product.name,
+      product_price: unitPrice,
+      quantity: item.quantity,
+      notes: item.notes ?? null,
+      subtotal: unitPrice * item.quantity,
+    }
+  })
+
+  const subtotal = validatedItems.reduce((sum, item) => sum + item.subtotal, 0)
   const deliveryFee =
     input.orderType === 'delivery' && restaurant?.delivery_enabled !== false
       ? Number(restaurant?.delivery_fee) || 0
@@ -39,15 +72,7 @@ export async function createOrder(input: CreateOrderInput) {
     notes: input.notes ?? null,
     source: 'web',
     estimated_ready_at: null,
-    order_items: input.items.map((i) => ({
-      id: randomUUID(),
-      product_id: i.productId,
-      product_name: i.name,
-      product_price: i.price,
-      quantity: i.quantity,
-      notes: i.notes ?? null,
-      subtotal: i.price * i.quantity,
-    })),
+    order_items: validatedItems,
   }
 
   const newOrder = db.createOrder(orderData)

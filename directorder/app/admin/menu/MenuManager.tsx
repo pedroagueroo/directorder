@@ -6,7 +6,7 @@ import {
   createProductAction,
   deleteProductAction,
   toggleCategoryVisibilityAction,
-  toggleProductAvailabilityAction,
+  toggleProductVisibilityAction,
   updateProductAction,
 } from '@/lib/actions/menu'
 
@@ -19,7 +19,7 @@ type Product = {
   price: number
   image_url?: string | null
   ingredients?: string[]
-  is_available: boolean
+  is_active?: boolean
 }
 
 export default function MenuManager({
@@ -538,7 +538,7 @@ export default function MenuManager({
                           <div className="min-w-0">
                             <h4 className="font-bold text-lg truncate">{prod.name}</h4>
                             <p className="font-semibold text-primary">${prod.price}</p>
-                            {!prod.is_available && (
+                            {prod.is_active === false && (
                               <span className="text-xs px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-600 font-semibold">
                                 Oculto en menú
                               </span>
@@ -591,10 +591,10 @@ export default function MenuManager({
                             </button>
                             <button
                               disabled={isPending}
-                              onClick={() => runAction(() => toggleProductAvailabilityAction(prod.id))}
+                              onClick={() => runAction(() => toggleProductVisibilityAction(prod.id))}
                               className="px-4 py-2 bg-rose-500/10 text-rose-500 font-bold rounded-xl hover:bg-rose-500/20"
                             >
-                              {prod.is_available ? 'Ocultar' : 'Mostrar'}
+                              {prod.is_active === false ? 'Mostrar' : 'Ocultar'}
                             </button>
                             <button
                               type="button"

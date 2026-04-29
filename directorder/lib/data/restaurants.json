@@ -42,21 +42,21 @@
   {
     "id": "rest-1777427833257",
     "slug": "prueba",
-    "name": "Mi Restaurante",
-    "description": "Configura tu descripción desde el panel.",
-    "whatsapp": "",
+    "name": "Burger Day",
+    "description": "Las mejores hamburgesas de Mar del Plata",
+    "whatsapp": "2234233487",
     "primary_color": "#e85d04",
     "secondary_color": "#f48c06",
-    "is_open": false,
+    "is_open": true,
     "currency": "ARS",
     "delivery_enabled": true,
     "pickup_enabled": true,
     "table_mode_enabled": false,
     "min_order_amount": 0,
-    "delivery_fee": 0,
+    "delivery_fee": 1000,
     "avg_prep_minutes": 30,
     "logo_url": null,
     "banner_url": null,
-    "address": null
+    "address": "Rodrigues Peña 4984"
   }
 ]

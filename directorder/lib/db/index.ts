@@ -92,7 +92,9 @@ export const ensureDefaultCategories = (restaurantId: string) => {
 // PRODUCTS
 export const getProducts = (restaurantId: string) => {
   const products = readDb('products.json')
-  return products.filter((p: any) => p.restaurant_id === restaurantId && p.is_available).sort((a: any, b: any) => a.sort_order - b.sort_order)
+  return products
+    .filter((p: any) => p.restaurant_id === restaurantId && p.is_active !== false)
+    .sort((a: any, b: any) => a.sort_order - b.sort_order)
 }
 
 export const getAllProducts = (restaurantId: string) => {
@@ -122,8 +124,7 @@ export const createProduct = (restaurantId: string, input: any) => {
     tags: input.tags ?? [],
     ingredients: input.ingredients,
     is_featured: !!input.is_featured,
-    is_available: input.is_available !== false,
-    stock: input.stock ?? null,
+    is_active: input.is_active !== false,
     prep_minutes: input.prep_minutes ?? 15,
     sort_order: maxSort + 1,
     sold_count: input.sold_count ?? 0,
@@ -145,12 +146,12 @@ export const updateProduct = (restaurantId: string, productId: string, updates: 
   return products[index]
 }
 
-export const setProductAvailability = (
+export const setProductVisibility = (
   restaurantId: string,
   productId: string,
-  isAvailable: boolean
+  isActive: boolean
 ) => {
-  return updateProduct(restaurantId, productId, { is_available: isAvailable })
+  return updateProduct(restaurantId, productId, { is_active: isActive })
 }
 
 export const deleteProduct = (restaurantId: string, productId: string) => {
@@ -241,12 +242,35 @@ export const updateOrderStatus = (orderId: string, status: string) => {
 // USERS
 export const authenticateUser = (email: string, password: string) => {
   const users = readDb('users.json')
-  return users.find((u: any) => u.email === email && u.password === password)
+  const normalizedEmail = String(email || '').trim().toLowerCase()
+  return users.find(
+    (u: any) =>
+      String(u.email || '').trim().toLowerCase() === normalizedEmail && u.password === password
+  )
 }
 
 export const getUserById = (id: string) => {
   const users = readDb('users.json')
   return users.find((u: any) => u.id === id)
+}
+
+export const isEmailTaken = (email: string, exceptUserId?: string) => {
+  const users = readDb('users.json')
+  const normalizedEmail = String(email || '').trim().toLowerCase()
+  return users.some(
+    (u: any) =>
+      String(u.email || '').trim().toLowerCase() === normalizedEmail &&
+      (!exceptUserId || u.id !== exceptUserId)
+  )
+}
+
+export const updateUser = (id: string, updates: any) => {
+  const users = readDb('users.json')
+  const index = users.findIndex((u: any) => u.id === id)
+  if (index === -1) return null
+  users[index] = { ...users[index], ...updates }
+  writeDb('users.json', users)
+  return users[index]
 }
 
 export const registerUser = (email: string, password: string) => {
@@ -275,6 +299,8 @@ export const registerUser = (email: string, password: string) => {
     min_order_amount: 0,
     delivery_fee: 0,
     avg_prep_minutes: 30,
+    kds_sound_new_order: true,
+    kds_sound_status_change: true,
     logo_url: null,
     banner_url: null,
     address: null

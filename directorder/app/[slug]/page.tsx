@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import { unstable_noStore as noStore } from 'next/cache'
 import MenuHeader from '@/components/public/MenuHeader'
 import CategoryFilter from '@/components/public/CategoryFilter'
 import FeaturedProducts from '@/components/public/FeaturedProducts'
@@ -16,6 +17,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 export default async function RestaurantPage({ params }: { params: { slug: string } }) {
+  noStore()
   const restaurant = db.getRestaurantBySlug(params.slug)
   if (!restaurant) notFound()
 

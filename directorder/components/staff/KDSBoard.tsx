@@ -9,7 +9,23 @@ const COLUMNS = [
   { id: 'ready', title: 'Listos 🛍️' }
 ] as const
 
-export default function KDSBoard({ orders, onUpdateStatus }: { orders: Order[], onUpdateStatus: (id: string, st: any) => void }) {
+export default function KDSBoard({
+  orders,
+  onUpdateStatus,
+  syncStatus,
+  syncError,
+  retryInMs,
+  lastUpdatedAt,
+  onRetry,
+}: {
+  orders: Order[]
+  onUpdateStatus: (id: string, st: Order['status']) => void
+  syncStatus: 'connected' | 'reconnecting' | 'error'
+  syncError: string | null
+  retryInMs: number
+  lastUpdatedAt: Date | null
+  onRetry: () => Promise<boolean>
+}) {
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }), 
     useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } })
@@ -29,6 +45,14 @@ export default function KDSBoard({ orders, onUpdateStatus }: { orders: Order[], 
   }
 
   const activeOrders = orders.filter(o => ['pending','preparing','ready'].includes(o.status))
+    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+
+  const statusBadge =
+    syncStatus === 'connected'
+      ? 'Conectado'
+      : syncStatus === 'reconnecting'
+      ? 'Reconectando...'
+      : 'Error de sincronizacion'
 
   return (
     <div className="flex h-[100dvh] min-h-0 flex-col bg-background">
@@ -37,11 +61,36 @@ export default function KDSBoard({ orders, onUpdateStatus }: { orders: Order[], 
           <a href="/admin/dashboard" className="w-10 h-10 rounded-xl bg-muted hover:bg-muted-foreground/20 flex items-center justify-center transition-colors text-xl font-bold">
             ←
           </a>
-          <h1 className="text-2xl sm:text-3xl font-black gradient-text">Kitchen Display</h1>
+          <h1 className="text-3xl sm:text-4xl font-black gradient-text">Kitchen Display</h1>
         </div>
-        <div className="bg-primary/10 border border-primary/20 text-primary px-4 py-1.5 rounded-full font-bold shadow-sm">
-           Activos: {activeOrders.length}
+        <div className="flex items-center gap-2">
+          <div className="rounded-full border px-3 py-1 text-xs font-bold bg-background">
+            {statusBadge}
+          </div>
+          <div className="bg-primary/10 border border-primary/20 text-primary px-4 py-1.5 rounded-full font-bold shadow-sm text-base">
+            Activos: {activeOrders.length}
+          </div>
         </div>
+      </div>
+      <div className="px-4 sm:px-6 pb-2 flex flex-wrap items-center gap-3 text-xs text-foreground/70">
+        <span>
+          Ultima actualizacion:{' '}
+          <strong>{lastUpdatedAt ? lastUpdatedAt.toLocaleTimeString('es-AR') : 'sin datos'}</strong>
+        </span>
+        {syncStatus !== 'connected' && retryInMs > 0 && (
+          <span>Reintento en {Math.ceil(retryInMs / 1000)}s</span>
+        )}
+        {syncError && (
+          <button
+            type="button"
+            onClick={() => {
+              void onRetry()
+            }}
+            className="px-2 py-1 rounded border border-border bg-card hover:bg-muted"
+          >
+            Reintentar ahora
+          </button>
+        )}
       </div>
 
       <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>

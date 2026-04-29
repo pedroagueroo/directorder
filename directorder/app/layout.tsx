@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Outfit } from "next/font/google";
 import "./globals.css";
+import AppToaster from "@/components/common/AppToaster";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -41,6 +42,7 @@ export default function RootLayout({
     <html lang="es" className={`${outfit.variable} ${fraunces.variable}`}>
       <body className={`${outfit.className} min-h-screen min-h-[100dvh] antialiased bg-background text-foreground overflow-x-hidden`}>
         {children}
+        <AppToaster />
       </body>
     </html>
   );

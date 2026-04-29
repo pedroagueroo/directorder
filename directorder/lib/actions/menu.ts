@@ -107,7 +107,7 @@ export async function updateProductAction(
   return { ok: true }
 }
 
-export async function toggleProductAvailabilityAction(productId: string) {
+export async function toggleProductVisibilityAction(productId: string) {
   const restaurantId = getRestaurantIdFromSession()
   if (!restaurantId) return { error: 'Sesión inválida' }
 
@@ -115,7 +115,8 @@ export async function toggleProductAvailabilityAction(productId: string) {
   const current = products.find((p: any) => p.id === productId)
   if (!current) return { error: 'Producto no encontrado' }
 
-  db.setProductAvailability(restaurantId, productId, !current.is_available)
+  const currentlyVisible = current.is_active !== false
+  db.setProductVisibility(restaurantId, productId, !currentlyVisible)
   revalidatePath('/admin/menu')
   revalidatePath('/[slug]', 'page')
   return { ok: true }

@@ -16,37 +16,41 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
 
-    if (mode === 'login') {
-      const formData = new FormData()
-      formData.append('email', email)
-      formData.append('password', password)
-      
-      const res = await login(formData)
-      if (res.error) {
-        setError(res.error)
-      } else {
-        if (res.role === 'owner') {
-          router.push('/admin/dashboard')
+    try {
+      if (mode === 'login') {
+        const formData = new FormData()
+        formData.append('email', email)
+        formData.append('password', password)
+        
+        const res = await login(formData)
+        if (res.error) {
+          setError(res.error)
         } else {
-          router.push('/staff')
+          if (res.role === 'owner') {
+            router.push('/admin/dashboard')
+          } else {
+            router.push('/staff')
+          }
+        }
+      } else {
+        const formData = new FormData()
+        formData.append('email', email)
+        formData.append('password', password)
+        
+        // Import the register function dynamically or ensure it's imported at the top
+        const { register } = await import('@/lib/actions/auth')
+        const res = await register(formData)
+        
+        if (res.error) {
+          setError(res.error)
+        } else {
+          setError('')
+          alert('¡Cuenta creada con éxito! Ahora puedes iniciar sesión.')
+          setMode('login')
         }
       }
-    } else {
-      const formData = new FormData()
-      formData.append('email', email)
-      formData.append('password', password)
-      
-      // Import the register function dynamically or ensure it's imported at the top
-      const { register } = await import('@/lib/actions/auth')
-      const res = await register(formData)
-      
-      if (res.error) {
-        setError(res.error)
-      } else {
-        setError('')
-        alert('¡Cuenta creada con éxito! Ahora puedes iniciar sesión.')
-        setMode('login')
-      }
+    } catch {
+      setError('No se pudo iniciar sesión por un error inesperado. Probá de nuevo.')
     }
     setLoading(false)
   }

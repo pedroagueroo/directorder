@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, UtensilsCrossed, ShoppingBag, Users, Settings, LogOut, Award } from 'lucide-react'
+import { LayoutDashboard, UtensilsCrossed, ShoppingBag, Settings, LogOut, User } from 'lucide-react'
 import { logout } from '@/lib/actions/auth'
 
 export default function Sidebar() {
@@ -23,21 +23,27 @@ export default function Sidebar() {
       </div>
       
       <nav className="flex-1 space-y-2">
-         <SidebarLink href="/admin/dashboard" icon={<LayoutDashboard size={20}/>} label="Dashboard" active={pathname === '/admin/dashboard'} />
+         <SidebarLink href="/admin/dashboard" icon={<LayoutDashboard size={20}/>} label="Centro de Control" active={pathname === '/admin/dashboard'} />
          <SidebarLink href="/admin/menu" icon={<UtensilsCrossed size={20}/>} label="Menú" active={pathname === '/admin/menu'} />
          <SidebarLink href="/staff" icon={<ShoppingBag size={20}/>} label="Cocina (KDS)" active={pathname === '/staff'} />
-         <SidebarLink href="/admin/customers" icon={<Users size={20}/>} label="Clientes" active={pathname === '/admin/customers'} />
-         <SidebarLink href="/admin/loyalty" icon={<Award size={20}/>} label="Fidelización" active={pathname === '/admin/loyalty'} />
          <SidebarLink href="/admin/settings" icon={<Settings size={20}/>} label="Configuración" active={pathname === '/admin/settings'} />
       </nav>
       
       <div className="pt-4 border-t border-border mt-auto">
-         <button 
-           onClick={handleLogout}
-           className="flex items-center gap-3 w-full px-4 py-3 text-rose-500 hover:bg-rose-500/10 rounded-2xl font-bold transition-all hover:scale-[1.02]"
-         >
-            <LogOut size={20} /> Cerrar Sesión
-         </button>
+         <div className="space-y-2">
+           <Link
+             href="/admin/profile"
+             className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl font-bold text-foreground/75 hover:bg-muted hover:text-foreground transition-colors"
+           >
+             <User size={19} /> Ver perfil
+           </Link>
+           <button
+             onClick={handleLogout}
+             className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl font-bold text-rose-500 hover:bg-rose-500/10 transition-colors"
+           >
+             <LogOut size={19} /> Cerrar sesión
+           </button>
+         </div>
       </div>
     </div>
   )

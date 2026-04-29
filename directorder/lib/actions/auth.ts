@@ -3,16 +3,14 @@ import { cookies } from 'next/headers'
 import * as db from '@/lib/db'
 
 export async function login(formData: FormData) {
-  const email = formData.get('email') as string
-  const password = formData.get('password') as string
+  const email = String(formData.get('email') ?? '').trim().toLowerCase()
+  const password = String(formData.get('password') ?? '')
 
   if (!email || !password) return { error: 'Email y contraseña requeridos' }
 
   const user = db.authenticateUser(email, password)
   
-  if (!user) {
-    return { error: 'Credenciales inválidas' }
-  }
+  if (!user) return { error: 'No se pudo iniciar sesión: email o contraseña incorrectos.' }
 
   // Set mock auth cookies
   cookies().set('auth-role', user.role, { httpOnly: true, secure: process.env.NODE_ENV === 'production', path: '/' })

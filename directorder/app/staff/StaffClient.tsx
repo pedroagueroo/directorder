@@ -2,8 +2,17 @@
 import { useOrders } from '@/lib/hooks/useOrders'
 import KDSBoard from '@/components/staff/KDSBoard'
 
-export default function StaffClient({ restaurantId }: { restaurantId: string }) {
-  const { orders, loading, updateStatus } = useOrders(restaurantId)
+export default function StaffClient({
+  restaurantId,
+  newOrderSoundEnabled,
+  statusSoundEnabled,
+}: {
+  restaurantId: string
+  newOrderSoundEnabled: boolean
+  statusSoundEnabled: boolean
+}) {
+  const { orders, loading, error, syncStatus, lastUpdatedAt, retryInMs, updateStatus, refetch } =
+    useOrders(restaurantId, { newOrderSoundEnabled, statusSoundEnabled })
 
   if (loading) {
     return (
@@ -13,5 +22,15 @@ export default function StaffClient({ restaurantId }: { restaurantId: string }) 
     )
   }
 
-  return <KDSBoard orders={orders} onUpdateStatus={updateStatus} />
+  return (
+    <KDSBoard
+      orders={orders}
+      onUpdateStatus={updateStatus}
+      syncStatus={syncStatus}
+      syncError={error}
+      retryInMs={retryInMs}
+      lastUpdatedAt={lastUpdatedAt}
+      onRetry={refetch}
+    />
+  )
 }

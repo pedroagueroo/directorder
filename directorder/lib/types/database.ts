@@ -17,6 +17,8 @@ export type Restaurant = {
   delivery_fee: number
   avg_prep_minutes: number
   is_open: boolean
+  kds_sound_new_order?: boolean
+  kds_sound_status_change?: boolean
 }
 
 export type Category = {
@@ -40,8 +42,7 @@ export type Product = {
   tags: string[]
   ingredients?: string[]
   is_featured: boolean
-  is_available: boolean
-  stock: number | null
+  is_active?: boolean
   prep_minutes: number
   sort_order: number
   sold_count: number
