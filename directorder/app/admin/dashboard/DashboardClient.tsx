@@ -12,10 +12,12 @@ export default function DashboardClient({
   restaurantId,
   menuSlug,
   restaurantOpen,
+  enableDemoData,
 }: {
   restaurantId: string
   menuSlug: string
   restaurantOpen: boolean
+  enableDemoData: boolean
 }) {
   const [isOpen, setIsOpen] = useState(restaurantOpen)
   const [toggleError, setToggleError] = useState('')
@@ -39,7 +41,7 @@ export default function DashboardClient({
     isDemoData,
     refreshAnalytics,
   } =
-    useDashboardAnalytics(restaurantId)
+    useDashboardAnalytics(restaurantId, { enableDemoData })
 
   const mixData = {
     labels: ['Delivery', 'Retiro', 'Mesa'],

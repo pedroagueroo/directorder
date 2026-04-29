@@ -275,8 +275,13 @@ export const updateUser = (id: string, updates: any) => {
 
 export const registerUser = (email: string, password: string) => {
   const users = readDb('users.json')
+  const normalizedEmail = String(email || '').trim().toLowerCase()
   
-  if (users.find((u: any) => u.email === email)) {
+  if (
+    users.find(
+      (u: any) => String(u.email || '').trim().toLowerCase() === normalizedEmail
+    )
+  ) {
     return { error: 'El email ya está registrado' }
   }
 
@@ -312,7 +317,7 @@ export const registerUser = (email: string, password: string) => {
   // Create the owner user
   const newUser = {
     id: `user-${Date.now()}`,
-    email,
+    email: normalizedEmail,
     password, // In a real app this would be hashed
     role: 'owner',
     restaurant_id: newRestaurantId,

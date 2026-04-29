@@ -21,7 +21,7 @@ export default function Home() {
           <Link href="/login" className="px-5 py-2.5 rounded-xl font-bold text-white/80 hover:text-white transition-colors">
             Iniciar Sesión
           </Link>
-          <Link href="/login" className="px-5 py-2.5 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:-translate-y-0.5">
+          <Link href="/login?mode=register" className="px-5 py-2.5 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:-translate-y-0.5">
             Comenzar Gratis
           </Link>
         </div>
@@ -51,7 +51,7 @@ export default function Home() {
             <Link href="/demo-burger" className="px-8 py-4 rounded-2xl font-semibold text-lg bg-gradient-to-r from-orange-500/90 to-amber-600/90 text-white shadow-lg shadow-black/20 hover:shadow-xl transition-all hover:-translate-y-0.5 active:scale-[0.99]">
               Ver menú de demostración
             </Link>
-            <Link href="/login" className="px-8 py-4 rounded-2xl font-extrabold text-lg bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all backdrop-blur-sm">
+            <Link href="/login?mode=register" className="px-8 py-4 rounded-2xl font-extrabold text-lg bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all backdrop-blur-sm">
               Crear mi Restaurante →
             </Link>
           </div>

@@ -37,7 +37,10 @@ const demoFallback = {
   orderMix: { delivery: 18, pickup: 12, table: 4 },
 }
 
-export function useDashboardAnalytics(restaurantId: string) {
+export function useDashboardAnalytics(
+  restaurantId: string,
+  options?: { enableDemoData?: boolean }
+) {
   const [data, setData] = useState(empty)
   const [syncStatus, setSyncStatus] = useState<'connected' | 'reconnecting' | 'error'>('connected')
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null)
@@ -75,7 +78,7 @@ export function useDashboardAnalytics(restaurantId: string) {
           total: Number(o.total) || 0,
           type: String(o.type || 'pickup'),
         }))
-      const useDemo = summary.todayOrders === 0
+      const useDemo = (options?.enableDemoData ?? false) && summary.todayOrders === 0
       setIsDemoData(useDemo)
 
       setData({
@@ -102,7 +105,7 @@ export function useDashboardAnalytics(restaurantId: string) {
       setSyncStatus(retryCountRef.current > 3 ? 'error' : 'reconnecting')
       return false
     }
-  }, [])
+  }, [options?.enableDemoData])
 
   useEffect(() => {
     let cancelled = false

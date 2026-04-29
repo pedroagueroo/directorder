@@ -10,12 +10,14 @@ export default function DashboardPage() {
   const restaurant = db.getRestaurantById(restaurantId)
   const menuSlug = restaurant?.slug ?? 'demo-burger'
   const restaurantOpen = restaurant?.is_open !== false
+  const enableDemoData = menuSlug === 'demo-burger'
 
   return (
     <DashboardClient
       restaurantId={restaurantId}
       menuSlug={menuSlug}
       restaurantOpen={restaurantOpen}
+      enableDemoData={enableDemoData}
     />
   )
 }

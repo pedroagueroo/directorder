@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers'
 import Sidebar from '@/components/admin/Sidebar'
 import * as db from '@/lib/db'
+import { redirect } from 'next/navigation'
 
 function hexToHslChannels(hex: string, fallback: string) {
   const normalized = String(hex || '').trim().replace('#', '')
@@ -37,7 +38,16 @@ function hexToHslChannels(hex: string, fallback: string) {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const restaurantId = cookies().get('auth-restaurant-id')?.value
-  const restaurant = restaurantId ? db.getRestaurantById(restaurantId) : null
+  const userId = cookies().get('auth-user-id')?.value
+  const user = userId ? db.getUserById(userId) : null
+  const restaurant =
+    restaurantId && user && user.restaurant_id === restaurantId
+      ? db.getRestaurantById(restaurantId)
+      : null
+
+  if (!restaurant || !user) {
+    redirect('/login')
+  }
   const primary = hexToHslChannels(restaurant?.primary_color ?? '', '14 46% 40%')
   const secondary = hexToHslChannels(restaurant?.secondary_color ?? '', '32 30% 46%')
   const adminThemeVars = {

@@ -8,6 +8,11 @@ export async function login(formData: FormData) {
 
   if (!email || !password) return { error: 'Email y contraseña requeridos' }
 
+  // Always reset previous session before processing login.
+  cookies().delete('auth-role')
+  cookies().delete('auth-user-id')
+  cookies().delete('auth-restaurant-id')
+
   const user = db.authenticateUser(email, password)
   
   if (!user) return { error: 'No se pudo iniciar sesión: email o contraseña incorrectos.' }
@@ -27,7 +32,7 @@ export async function logout() {
 }
 
 export async function register(formData: FormData) {
-  const email = formData.get('email') as string
+  const email = String(formData.get('email') ?? '').trim().toLowerCase()
   const password = formData.get('password') as string
 
   if (!email || !password || password.length < 6) return { error: 'Email y contraseña (min 6 caracteres) requeridos' }
@@ -38,5 +43,13 @@ export async function register(formData: FormData) {
     return { error: result.error }
   }
 
-  return { success: true }
+  if (!result.user?.restaurant_id) {
+    return { error: 'No se pudo crear la sesión del nuevo restaurante.' }
+  }
+
+  cookies().set('auth-role', result.user.role, { httpOnly: true, secure: process.env.NODE_ENV === 'production', path: '/' })
+  cookies().set('auth-user-id', result.user.id, { httpOnly: true, secure: process.env.NODE_ENV === 'production', path: '/' })
+  cookies().set('auth-restaurant-id', result.user.restaurant_id, { httpOnly: true, secure: process.env.NODE_ENV === 'production', path: '/' })
+
+  return { success: true, role: result.user.role }
 }
