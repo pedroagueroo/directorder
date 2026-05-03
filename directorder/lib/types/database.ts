@@ -54,7 +54,13 @@ export type Order = {
   customer_id: string | null
   table_id: string | null
   order_number: number
-  status: 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
+  status:
+    | 'awaiting_payment'
+    | 'pending'
+    | 'preparing'
+    | 'ready'
+    | 'delivered'
+    | 'cancelled'
   type: 'pickup' | 'delivery' | 'table'
   customer_name: string | null
   customer_phone: string | null
@@ -67,6 +73,12 @@ export type Order = {
   source: string | null
   estimated_ready_at: string | null
   accepted_at: string | null
+  /** Cuando el local confirmó el pago y el pedido pasó a cocina (pending). */
+  payment_confirmed_at?: string | null
+  /** cash = va directo a cocina; cobro marcado en panel. other = espera confirmación remota antes de cocina. */
+  payment_method?: 'cash' | 'other'
+  /** true cuando el dinero quedó acreditado / cobrado (transferencia confirmada o efectivo cobrado). */
+  payment_received?: boolean
   ready_at: string | null
   delivered_at: string | null
   created_at: string

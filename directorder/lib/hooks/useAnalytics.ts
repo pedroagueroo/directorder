@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { summarizeDailySales, DEFAULT_ANALYTICS_TIMEZONE } from '@/lib/utils/analytics'
+import { fetchWithRetry } from '@/lib/utils/fetch-with-retry'
 
 const empty = {
   todaySales: 0,
@@ -19,6 +20,23 @@ const empty = {
     customerName: string
     total: number
     type: string
+  }>,
+  awaitingPaymentList: [] as Array<{
+    id: string
+    orderNumber: number
+    customerName: string
+    total: number
+    type: string
+    createdAt: string
+  }>,
+  cashPendingList: [] as Array<{
+    id: string
+    orderNumber: number
+    customerName: string
+    total: number
+    type: string
+    status: string
+    createdAt: string
   }>,
 }
 
@@ -50,8 +68,9 @@ export function useDashboardAnalytics(
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const fetchData = useCallback(async () => {
+    void restaurantId
     try {
-      const res = await fetch('/api/orders', { credentials: 'include' })
+      const res = await fetchWithRetry('/api/orders', { credentials: 'include' }, { retries: 2 })
       if (res.status === 401) {
         setData(empty)
         setError('Sesion vencida')
@@ -78,6 +97,42 @@ export function useDashboardAnalytics(
           total: Number(o.total) || 0,
           type: String(o.type || 'pickup'),
         }))
+      const awaitingPaymentList = orders
+        .filter((o: any) => o.status === 'awaiting_payment')
+        .sort((a: any, b: any) => {
+          const aDate = new Date(a.created_at).getTime()
+          const bDate = new Date(b.created_at).getTime()
+          return aDate - bDate
+        })
+        .map((o: any) => ({
+          id: o.id,
+          orderNumber: Number(o.order_number) || 0,
+          customerName: o.customer_name || 'Cliente',
+          total: Number(o.total) || 0,
+          type: String(o.type || 'pickup'),
+          createdAt: String(o.created_at || ''),
+        }))
+      const cashPendingList = orders
+        .filter(
+          (o: any) =>
+            o.payment_method === 'cash' &&
+            o.payment_received !== true &&
+            ['pending', 'preparing', 'ready'].includes(o.status)
+        )
+        .sort((a: any, b: any) => {
+          const aDate = new Date(a.created_at).getTime()
+          const bDate = new Date(b.created_at).getTime()
+          return aDate - bDate
+        })
+        .map((o: any) => ({
+          id: o.id,
+          orderNumber: Number(o.order_number) || 0,
+          customerName: o.customer_name || 'Cliente',
+          total: Number(o.total) || 0,
+          type: String(o.type || 'pickup'),
+          status: String(o.status || 'pending'),
+          createdAt: String(o.created_at || ''),
+        }))
       const useDemo = (options?.enableDemoData ?? false) && summary.todayOrders === 0
       setIsDemoData(useDemo)
 
@@ -93,6 +148,8 @@ export function useDashboardAnalytics(
         preparingOrders,
         readyOrders,
         readyOrderList,
+        awaitingPaymentList,
+        cashPendingList,
       })
       setLastUpdatedAt(new Date())
       setError(null)
@@ -105,7 +162,7 @@ export function useDashboardAnalytics(
       setSyncStatus(retryCountRef.current > 3 ? 'error' : 'reconnecting')
       return false
     }
-  }, [options?.enableDemoData])
+  }, [restaurantId, options?.enableDemoData])
 
   useEffect(() => {
     let cancelled = false
@@ -133,7 +190,7 @@ export function useDashboardAnalytics(
       document.removeEventListener('visibilitychange', onVisibility)
       window.removeEventListener('online', onOnline)
     }
-  }, [restaurantId, fetchData])
+  }, [fetchData])
 
   return { ...data, syncStatus, lastUpdatedAt, error, isDemoData, refreshAnalytics: fetchData }
 }

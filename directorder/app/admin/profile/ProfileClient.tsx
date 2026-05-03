@@ -2,14 +2,18 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { updateProfileCredentialsAction } from '@/lib/actions/profile'
+import { deleteAccountAction, updateProfileCredentialsAction } from '@/lib/actions/profile'
 
 export default function ProfileClient({
   restaurantName,
   initialEmail,
+  allowDelete,
+  isOwner,
 }: {
   restaurantName: string
   initialEmail: string
+  allowDelete: boolean
+  isOwner: boolean
 }) {
   const router = useRouter()
   const [showEditOptions, setShowEditOptions] = useState(false)
@@ -21,6 +25,12 @@ export default function ProfileClient({
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [isPending, startTransition] = useTransition()
+  const [showDeletePanel, setShowDeletePanel] = useState(false)
+  const [deletePassword, setDeletePassword] = useState('')
+  const [deleteConfirmName, setDeleteConfirmName] = useState('')
+  const [deleteAccept, setDeleteAccept] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
+  const [deletePending, startDeleteTransition] = useTransition()
 
   const resetEditingState = () => {
     setShowEditOptions(false)
@@ -212,6 +222,133 @@ export default function ProfileClient({
           </div>
         )}
       </form>
+
+      <section className="rounded-[2rem] border border-rose-200/80 bg-rose-50/40 dark:bg-rose-950/20 dark:border-rose-900/50 p-5 sm:p-7 space-y-4">
+        <h2 className="text-xl font-black tracking-tight text-rose-900 dark:text-rose-100">Zona peligrosa</h2>
+        {!isOwner && (
+          <p className="text-sm text-rose-800/90 dark:text-rose-200/90">
+            Solo el dueño del local puede eliminar la cuenta y todos los datos del negocio.
+          </p>
+        )}
+        {isOwner && !allowDelete && (
+          <p className="text-sm text-rose-800/90 dark:text-rose-200/90">
+            El restaurante de demostración no se puede eliminar desde acá.
+          </p>
+        )}
+        {isOwner && allowDelete && !showDeletePanel && (
+          <div className="space-y-3">
+            <p className="text-sm text-rose-900/90 dark:text-rose-100/85 leading-relaxed">
+              Podés eliminar tu cuenta y <strong>todo</strong> lo asociado a este local: menú, pedidos, categorías y
+              usuarios del equipo. Esta acción no se puede deshacer.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setDeleteError('')
+                setShowDeletePanel(true)
+              }}
+              className="px-5 py-3 rounded-2xl border border-rose-300 bg-white text-rose-800 font-bold text-sm hover:bg-rose-50 dark:bg-rose-950/40 dark:text-rose-100 dark:border-rose-800 dark:hover:bg-rose-900/40"
+            >
+              Eliminar cuenta y datos del local…
+            </button>
+          </div>
+        )}
+        {isOwner && allowDelete && showDeletePanel && (
+          <form
+            className="relative space-y-4 pt-1"
+            action={(formData) =>
+              startDeleteTransition(async () => {
+                setDeleteError('')
+                formData.set('delete_password', deletePassword)
+                formData.set('confirm_restaurant_name', deleteConfirmName)
+                formData.set('delete_accept', deleteAccept ? 'on' : '')
+                const res = await deleteAccountAction(formData)
+                if (res?.error) {
+                  setDeleteError(res.error)
+                  return
+                }
+                window.location.assign('/?cuenta=eliminada')
+              })
+            }
+          >
+            <div className="absolute overflow-hidden w-px h-px opacity-0" aria-hidden="true">
+              <input type="text" name="_delete_hp" tabIndex={-1} autoComplete="off" />
+            </div>
+            <p className="text-sm font-bold text-rose-900 dark:text-rose-100">
+              Verificación: contraseña + nombre del local + confirmación
+            </p>
+            <ul className="text-xs text-rose-800/90 dark:text-rose-200/85 list-disc pl-5 space-y-1">
+              <li>Ingresá tu contraseña actual.</li>
+              <li>
+                Escribí el nombre del local exactamente como arriba:{' '}
+                <strong className="text-foreground">{restaurantName}</strong> (mayúsculas da igual).
+              </li>
+              <li>Marcá la casilla de que entendés que es permanente.</li>
+            </ul>
+            <label className="block space-y-2">
+              <span className="text-sm font-semibold text-foreground/80">Contraseña actual</span>
+              <input
+                type="password"
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                className="w-full rounded-2xl border border-border/80 bg-background px-4 py-3"
+                autoComplete="current-password"
+              />
+            </label>
+            <label className="block space-y-2">
+              <span className="text-sm font-semibold text-foreground/80">Nombre del local (verificación)</span>
+              <input
+                type="text"
+                value={deleteConfirmName}
+                onChange={(e) => setDeleteConfirmName(e.target.value)}
+                className="w-full rounded-2xl border border-border/80 bg-background px-4 py-3"
+                placeholder={restaurantName}
+                autoComplete="off"
+              />
+            </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={deleteAccept}
+                onChange={(e) => setDeleteAccept(e.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-rose-300 text-rose-600 focus:ring-rose-500/40"
+              />
+              <span className="text-sm text-foreground/80 leading-snug">
+                Entiendo que se borran de forma permanente el menú, los pedidos, las categorías y todas las cuentas de
+                este local. No hay forma de recuperarlos.
+              </span>
+            </label>
+            {deleteError && (
+              <div className="rounded-xl border border-rose-300 bg-rose-100/80 dark:bg-rose-950/50 px-3 py-2 text-sm text-rose-900 dark:text-rose-100">
+                {deleteError}
+              </div>
+            )}
+            <div className="flex flex-wrap gap-2 pt-2">
+              <button
+                type="button"
+                disabled={deletePending}
+                onClick={() => {
+                  setShowDeletePanel(false)
+                  setDeletePassword('')
+                  setDeleteConfirmName('')
+                  setDeleteAccept(false)
+                  setDeleteError('')
+                }}
+                className="px-5 py-3 rounded-2xl border border-border bg-background font-bold text-sm hover:bg-muted/40 disabled:opacity-60"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={deletePending}
+                className="px-6 py-3 rounded-2xl bg-rose-600 text-white font-bold text-sm hover:bg-rose-700 disabled:opacity-60"
+              >
+                {deletePending ? 'Eliminando…' : 'Eliminar definitivamente'}
+              </button>
+            </div>
+          </form>
+        )}
+      </section>
     </div>
   )
 }

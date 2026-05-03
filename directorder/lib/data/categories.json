@@ -126,5 +126,37 @@
     "emoji": "🍰",
     "sort_order": 3,
     "is_active": true
+  },
+  {
+    "id": "cat-1777519832056-3huy",
+    "restaurant_id": "rest-1777519832055",
+    "name": "Hamburguesas",
+    "emoji": "🍔",
+    "sort_order": 0,
+    "is_active": true
+  },
+  {
+    "id": "cat-1777519832057-6zl2",
+    "restaurant_id": "rest-1777519832055",
+    "name": "Acompañamientos",
+    "emoji": "🍟",
+    "sort_order": 1,
+    "is_active": true
+  },
+  {
+    "id": "cat-1777519832057-xp5n",
+    "restaurant_id": "rest-1777519832055",
+    "name": "Bebidas",
+    "emoji": "🥤",
+    "sort_order": 2,
+    "is_active": true
+  },
+  {
+    "id": "cat-1777519832058-t2bq",
+    "restaurant_id": "rest-1777519832055",
+    "name": "Postres",
+    "emoji": "🍰",
+    "sort_order": 3,
+    "is_active": true
   }
 ]

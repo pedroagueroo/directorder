@@ -52,16 +52,16 @@ export default function KDSBoard({
       ? 'Conectado'
       : syncStatus === 'reconnecting'
       ? 'Reconectando...'
-      : 'Error de sincronizacion'
+      : 'Error de sincronización'
 
   return (
     <div className="flex h-[100dvh] min-h-0 flex-col bg-background">
-      <div className="px-4 pb-4 pt-[max(0.75rem,env(safe-area-inset-top,0px))] sm:p-6 bg-card border-b border-border shadow-sm z-10 flex flex-wrap gap-3 justify-between items-center shrink-0">
+      <div className="px-4 pb-4 pt-[max(0.75rem,env(safe-area-inset-top,0px))] sm:p-6 bg-card border-b-2 border-border shadow-sm z-10 flex flex-wrap gap-3 justify-between items-center shrink-0">
         <div className="flex items-center gap-4">
           <a href="/admin/dashboard" className="w-10 h-10 rounded-xl bg-muted hover:bg-muted-foreground/20 flex items-center justify-center transition-colors text-xl font-bold">
             ←
           </a>
-          <h1 className="text-3xl sm:text-4xl font-black gradient-text">Kitchen Display</h1>
+          <h1 className="text-3xl sm:text-5xl font-black text-foreground tracking-tight">Cocina · KDS</h1>
         </div>
         <div className="flex items-center gap-2">
           <div className="rounded-full border px-3 py-1 text-xs font-bold bg-background">
@@ -72,10 +72,12 @@ export default function KDSBoard({
           </div>
         </div>
       </div>
-      <div className="px-4 sm:px-6 pb-2 flex flex-wrap items-center gap-3 text-xs text-foreground/70">
+      <div className="px-4 sm:px-6 pb-2 flex flex-wrap items-center gap-3 text-sm font-semibold text-foreground/75">
         <span>
-          Ultima actualizacion:{' '}
-          <strong>{lastUpdatedAt ? lastUpdatedAt.toLocaleTimeString('es-AR') : 'sin datos'}</strong>
+          Última actualización:{' '}
+          <strong className="text-foreground tabular-nums">
+            {lastUpdatedAt ? lastUpdatedAt.toLocaleTimeString('es-AR') : '—'}
+          </strong>
         </span>
         {syncStatus !== 'connected' && retryInMs > 0 && (
           <span>Reintento en {Math.ceil(retryInMs / 1000)}s</span>

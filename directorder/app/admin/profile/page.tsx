@@ -13,10 +13,15 @@ export default function AdminProfilePage() {
   const user = db.getUserById(userId)
   if (!restaurant || !user) redirect('/login')
 
+  const allowDelete =
+    restaurant.id !== 'demo-id' && String(restaurant.slug || '') !== 'demo-burger'
+
   return (
     <ProfileClient
       restaurantName={String(restaurant.name || 'Mi Restaurante')}
       initialEmail={String(user.email || '')}
+      allowDelete={allowDelete}
+      isOwner={user.role === 'owner'}
     />
   )
 }

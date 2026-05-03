@@ -3,7 +3,7 @@ import { useState, useTransition } from 'react'
 import { useDashboardAnalytics } from '@/lib/hooks/useAnalytics'
 import { Bar, Doughnut } from 'react-chartjs-2'
 import 'chart.js/auto'
-import { Utensils, DollarSign, ShoppingCart, Clock, BellRing, ChefHat } from 'lucide-react'
+import { Utensils, DollarSign, ShoppingCart, Clock, BellRing, ChefHat, Banknote } from 'lucide-react'
 import QRGenerator from '@/components/admin/QRGenerator'
 import { setRestaurantOpenAction } from '@/lib/actions/restaurant'
 import toast from 'react-hot-toast'
@@ -23,6 +23,8 @@ export default function DashboardClient({
   const [toggleError, setToggleError] = useState('')
   const [deliveryError, setDeliveryError] = useState('')
   const [deliveringOrderId, setDeliveringOrderId] = useState<string | null>(null)
+  const [paymentActionId, setPaymentActionId] = useState<string | null>(null)
+  const [cashCollectId, setCashCollectId] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const {
     todaySales,
@@ -35,10 +37,8 @@ export default function DashboardClient({
     preparingOrders,
     readyOrders,
     readyOrderList,
-    syncStatus,
-    lastUpdatedAt,
-    error: syncError,
-    isDemoData,
+    awaitingPaymentList,
+    cashPendingList,
     refreshAnalytics,
   } =
     useDashboardAnalytics(restaurantId, { enableDemoData })
@@ -131,9 +131,6 @@ export default function DashboardClient({
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             Hoy: {new Date().toLocaleDateString('es-AR')}
           </div>
-          <div className="bg-card px-4 py-2.5 rounded-2xl shadow-sm border border-border text-xs font-semibold">
-            {isDemoData ? 'Modo DEMO' : 'Datos reales'}
-          </div>
         </div>
       </div>
       {toggleError && (
@@ -141,23 +138,6 @@ export default function DashboardClient({
           {toggleError}
         </p>
       )}
-      <div className="rounded-2xl border border-border bg-card/60 px-4 py-3 text-xs sm:text-sm flex flex-wrap items-center gap-3">
-        <span>
-          Sincronizacion:{' '}
-          <strong>
-            {syncStatus === 'connected'
-              ? 'Conectado'
-              : syncStatus === 'reconnecting'
-              ? 'Reconectando...'
-              : 'Error'}
-          </strong>
-        </span>
-        <span>
-          Ultima actualizacion:{' '}
-          <strong>{lastUpdatedAt ? lastUpdatedAt.toLocaleTimeString('es-AR') : 'sin datos'}</strong>
-        </span>
-        {syncError && <span className="text-rose-600">{syncError}</span>}
-      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         <MetricCard
@@ -184,11 +164,214 @@ export default function DashboardClient({
         <p className="text-xs font-bold uppercase tracking-wide text-foreground/60 mb-2.5">
           Estado operativo en vivo
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <MiniStat label="Pendientes" value={pendingOrders} icon={<BellRing size={14} />} />
+        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-2">
+          <MiniStat
+            label="Pago remoto por confirmar"
+            value={awaitingPaymentList.length}
+            icon={<Banknote size={14} />}
+          />
+          <MiniStat
+            label="Efectivo por cobrar"
+            value={cashPendingList.length}
+            icon={<DollarSign size={14} />}
+          />
+          <MiniStat label="En cocina (nuevos)" value={pendingOrders} icon={<BellRing size={14} />} />
           <MiniStat label="Preparando" value={preparingOrders} icon={<ChefHat size={14} />} />
           <MiniStat label="Listos" value={readyOrders} icon={<ShoppingCart size={14} />} />
         </div>
+      </div>
+
+      <div className="rounded-2xl border border-amber-200/80 bg-amber-50/40 dark:bg-amber-950/20 dark:border-amber-800/50 p-4 sm:p-5">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
+          <div>
+            <h3 className="text-base sm:text-lg font-extrabold">Pago remoto: confirmar antes de cocina</h3>
+            <p className="text-sm text-foreground/70 mt-1 max-w-2xl">
+              Transferencia u otros medios: cuando confirmes que entró el pago, el pedido pasa a cocina (KDS). Si no
+              corresponde, podés rechazarlo.
+            </p>
+          </div>
+          <span className="text-xs font-semibold px-2 py-1 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-100 shrink-0 self-start">
+            {awaitingPaymentList.length} pedido{awaitingPaymentList.length === 1 ? '' : 's'}
+          </span>
+        </div>
+        {awaitingPaymentList.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No hay pedidos esperando confirmación de pago.</p>
+        ) : (
+          <div className="space-y-2.5">
+            {awaitingPaymentList.map((order) => (
+              <div
+                key={order.id}
+                className="rounded-xl border border-border bg-background p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+              >
+                <div className="min-w-0">
+                  <p className="font-semibold">
+                    Pedido #{order.orderNumber} · {order.customerName}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {order.type} · ${order.total.toLocaleString('es-AR')}
+                    {order.createdAt && (
+                      <>
+                        {' '}
+                        · {new Date(order.createdAt).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' })}
+                      </>
+                    )}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2 shrink-0">
+                  <button
+                    type="button"
+                    disabled={paymentActionId === order.id}
+                    onClick={async () => {
+                      try {
+                        setPaymentActionId(order.id)
+                        const res = await fetch('/api/orders', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          credentials: 'include',
+                          body: JSON.stringify({
+                            action: 'updateStatus',
+                            orderId: order.id,
+                            status: 'pending',
+                          }),
+                        })
+                        if (!res.ok) {
+                          const payload = await res.json().catch(() => ({}))
+                          throw new Error(payload?.error || 'No se pudo confirmar el pago.')
+                        }
+                        await refreshAnalytics()
+                        toast.success(`Pedido #${order.orderNumber} confirmado — ya está en cocina`)
+                      } catch (e) {
+                        toast.error(e instanceof Error ? e.message : 'No se pudo confirmar el pago.')
+                      } finally {
+                        setPaymentActionId(null)
+                      }
+                    }}
+                    className="px-3 py-2 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700 disabled:opacity-60"
+                  >
+                    {paymentActionId === order.id ? 'Guardando…' : 'Confirmar pago'}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={paymentActionId === order.id}
+                    onClick={async () => {
+                      if (
+                        !confirm(
+                          `¿Rechazar el pedido #${order.orderNumber}? No entrará a cocina.`
+                        )
+                      )
+                        return
+                      try {
+                        setPaymentActionId(order.id)
+                        const res = await fetch('/api/orders', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          credentials: 'include',
+                          body: JSON.stringify({
+                            action: 'updateStatus',
+                            orderId: order.id,
+                            status: 'cancelled',
+                          }),
+                        })
+                        if (!res.ok) {
+                          const payload = await res.json().catch(() => ({}))
+                          throw new Error(payload?.error || 'No se pudo rechazar el pedido.')
+                        }
+                        await refreshAnalytics()
+                        toast.success(`Pedido #${order.orderNumber} rechazado`)
+                      } catch (e) {
+                        toast.error(e instanceof Error ? e.message : 'No se pudo rechazar.')
+                      } finally {
+                        setPaymentActionId(null)
+                      }
+                    }}
+                    className="px-3 py-2 rounded-lg border border-border bg-muted/50 text-sm font-bold hover:bg-muted disabled:opacity-60"
+                  >
+                    Rechazar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="rounded-2xl border border-sky-200/80 bg-sky-50/50 dark:bg-sky-950/25 dark:border-sky-800/50 p-4 sm:p-5">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
+          <div>
+            <h3 className="text-base sm:text-lg font-extrabold">Efectivo: cobro pendiente</h3>
+            <p className="text-sm text-foreground/70 mt-1 max-w-2xl">
+              Estos pedidos ya están en cocina. Marcá &quot;Cobré&quot; cuando tengas el efectivo (o al entregar).
+            </p>
+          </div>
+          <span className="text-xs font-semibold px-2 py-1 rounded-full bg-sky-100 dark:bg-sky-900/40 text-sky-900 dark:text-sky-100 shrink-0 self-start">
+            {cashPendingList.length} pedido{cashPendingList.length === 1 ? '' : 's'}
+          </span>
+        </div>
+        {cashPendingList.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No hay pedidos en efectivo pendientes de cobro.</p>
+        ) : (
+          <div className="space-y-2.5">
+            {cashPendingList.map((order) => (
+              <div
+                key={order.id}
+                className="rounded-xl border border-border bg-background p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+              >
+                <div className="min-w-0">
+                  <p className="font-semibold">
+                    Pedido #{order.orderNumber} · {order.customerName}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {order.type} · ${order.total.toLocaleString('es-AR')} · Cocina:{' '}
+                    <strong className="text-foreground">
+                      {order.status === 'pending'
+                        ? 'Nuevo'
+                        : order.status === 'preparing'
+                          ? 'Preparando'
+                          : 'Listo'}
+                    </strong>
+                    {order.createdAt && (
+                      <>
+                        {' '}
+                        · {new Date(order.createdAt).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' })}
+                      </>
+                    )}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  disabled={cashCollectId === order.id}
+                  onClick={async () => {
+                    try {
+                      setCashCollectId(order.id)
+                      const res = await fetch('/api/orders', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                          action: 'markCashReceived',
+                          orderId: order.id,
+                        }),
+                      })
+                      if (!res.ok) {
+                        const payload = await res.json().catch(() => ({}))
+                        throw new Error(payload?.error || 'No se pudo registrar el cobro.')
+                      }
+                      await refreshAnalytics()
+                      toast.success(`Pedido #${order.orderNumber}: cobro en efectivo registrado`)
+                    } catch (e) {
+                      toast.error(e instanceof Error ? e.message : 'No se pudo registrar el cobro.')
+                    } finally {
+                      setCashCollectId(null)
+                    }
+                  }}
+                  className="self-start sm:self-auto px-3 py-2 rounded-lg bg-sky-600 text-white text-sm font-bold hover:bg-sky-700 disabled:opacity-60"
+                >
+                  {cashCollectId === order.id ? 'Guardando…' : 'Cobré'}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="bg-card border border-border rounded-2xl p-4 sm:p-5">

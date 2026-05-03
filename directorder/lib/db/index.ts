@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import { hashPassword, verifyPassword } from '@/lib/server/password'
 
 // Helper to read JSON
 const readDb = (fileName: string) => {
@@ -12,10 +13,34 @@ const readDb = (fileName: string) => {
   }
 }
 
-// Helper to write JSON
+/** Escritura en dos pasos; si rename falla (p. ej. Windows + archivo en uso), escribe directo. */
 const writeDb = (fileName: string, data: any) => {
   const filePath = path.join(process.cwd(), `lib/data/${fileName}`)
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2))
+  const dir = path.dirname(filePath)
+  fs.mkdirSync(dir, { recursive: true })
+  const tmp = path.join(dir, `.${fileName}.${process.pid}.${Date.now()}.tmp`)
+  const payload = JSON.stringify(data, null, 2)
+  fs.writeFileSync(tmp, payload, 'utf8')
+  try {
+    if (fs.existsSync(filePath)) {
+      try {
+        fs.unlinkSync(filePath)
+      } catch {
+        /* archivo bloqueado: seguimos e intentamos rename o fallback */
+      }
+    }
+    fs.renameSync(tmp, filePath)
+  } catch {
+    try {
+      fs.writeFileSync(filePath, payload, 'utf8')
+    } finally {
+      try {
+        if (fs.existsSync(tmp)) fs.unlinkSync(tmp)
+      } catch {
+        /* ignore */
+      }
+    }
+  }
 }
 
 // RESTAURANT
@@ -229,6 +254,12 @@ export const updateOrderStatus = (orderId: string, status: string) => {
       ...o,
       status,
       updated_at: now,
+      payment_confirmed_at:
+        status === 'pending' && o.status === 'awaiting_payment'
+          ? now
+          : o.payment_confirmed_at ?? null,
+      payment_received:
+        status === 'pending' && o.status === 'awaiting_payment' ? true : o.payment_received,
       accepted_at: status === 'preparing' ? now : o.accepted_at,
       ready_at: status === 'ready' ? now : o.ready_at,
       delivered_at: status === 'delivered' ? now : o.delivered_at,
@@ -239,13 +270,27 @@ export const updateOrderStatus = (orderId: string, status: string) => {
   return null
 }
 
+export const markOrderCashReceived = (restaurantId: string, orderId: string) => {
+  const orders = readDb('orders.json')
+  const index = orders.findIndex((o: any) => o.id === orderId && o.restaurant_id === restaurantId)
+  if (index === -1) return null
+  const o = orders[index]
+  if (o.payment_method !== 'cash' || o.payment_received === true) return null
+  if (o.status === 'cancelled' || o.status === 'delivered') return null
+  const now = new Date().toISOString()
+  orders[index] = { ...o, payment_received: true, updated_at: now }
+  writeDb('orders.json', orders)
+  return orders[index]
+}
+
 // USERS
 export const authenticateUser = (email: string, password: string) => {
   const users = readDb('users.json')
   const normalizedEmail = String(email || '').trim().toLowerCase()
   return users.find(
     (u: any) =>
-      String(u.email || '').trim().toLowerCase() === normalizedEmail && u.password === password
+      String(u.email || '').trim().toLowerCase() === normalizedEmail &&
+      verifyPassword(password, String(u.password ?? ''))
   )
 }
 
@@ -273,10 +318,35 @@ export const updateUser = (id: string, updates: any) => {
   return users[index]
 }
 
-export const registerUser = (email: string, password: string) => {
+export type RegisterProfileInput = {
+  restaurantName: string
+  ownerName: string
+  whatsapp?: string | null
+}
+
+function slugifyRestaurantName(name: string): string {
+  const raw = String(name || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 48)
+  return raw || 'mi-local'
+}
+
+function uniqueRestaurantSlug(base: string, restaurants: any[]): string {
+  if (!restaurants.some((r: any) => r.slug === base)) return base
+  let n = 2
+  while (restaurants.some((r: any) => r.slug === `${base}-${n}`)) n += 1
+  return `${base}-${n}`
+}
+
+export const registerUser = (email: string, password: string, profile: RegisterProfileInput) => {
   const users = readDb('users.json')
   const normalizedEmail = String(email || '').trim().toLowerCase()
-  
+
   if (
     users.find(
       (u: any) => String(u.email || '').trim().toLowerCase() === normalizedEmail
@@ -285,19 +355,23 @@ export const registerUser = (email: string, password: string) => {
     return { error: 'El email ya está registrado' }
   }
 
-  // Create a new restaurant for this new owner
   const restaurants = readDb('restaurants.json')
+  const baseSlug = slugifyRestaurantName(profile.restaurantName)
+  const slug = uniqueRestaurantSlug(baseSlug, restaurants)
+  const displayName = profile.restaurantName.trim()
+  const waDigits = String(profile.whatsapp ?? '').replace(/\D/g, '')
+
   const newRestaurantId = `rest-${Date.now()}`
   const newRestaurant = {
     id: newRestaurantId,
-    slug: email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '-'),
-    name: "Mi Restaurante",
-    description: "Configura tu descripción desde el panel.",
-    whatsapp: "",
-    primary_color: "#e85d04",
-    secondary_color: "#f48c06",
+    slug,
+    name: displayName,
+    description: `Pedidos y menú de ${displayName} — DirectOrder.`,
+    whatsapp: waDigits || '',
+    primary_color: '#e85d04',
+    secondary_color: '#f48c06',
     is_open: false,
-    currency: "ARS",
+    currency: 'ARS',
     delivery_enabled: true,
     pickup_enabled: true,
     table_mode_enabled: false,
@@ -308,20 +382,19 @@ export const registerUser = (email: string, password: string) => {
     kds_sound_status_change: true,
     logo_url: null,
     banner_url: null,
-    address: null
+    address: null,
   }
   restaurants.push(newRestaurant)
   writeDb('restaurants.json', restaurants)
   ensureDefaultCategories(newRestaurantId)
 
-  // Create the owner user
   const newUser = {
     id: `user-${Date.now()}`,
     email: normalizedEmail,
-    password, // In a real app this would be hashed
+    password: hashPassword(password),
     role: 'owner',
     restaurant_id: newRestaurantId,
-    name: email.split('@')[0]
+    name: profile.ownerName.trim(),
   }
 
   users.push(newUser)
@@ -329,3 +402,48 @@ export const registerUser = (email: string, password: string) => {
 
   return { user: newUser }
 }
+
+function normalizeComparableName(name: string): string {
+  return String(name || '')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLowerCase()
+}
+
+/** Elimina el restaurante y categorías, productos, pedidos y usuarios de ese local. */
+export const purgeRestaurantTenant = (restaurantId: string): boolean => {
+  const restaurants = readDb('restaurants.json')
+  if (!Array.isArray(restaurants) || !restaurants.some((r: any) => r.id === restaurantId)) {
+    return false
+  }
+
+  writeDb(
+    'restaurants.json',
+    restaurants.filter((r: any) => r.id !== restaurantId)
+  )
+
+  const filterByRestaurant = (fileName: string) => {
+    const rows = readDb(fileName)
+    if (!Array.isArray(rows)) return
+    writeDb(
+      fileName,
+      rows.filter((row: any) => row.restaurant_id !== restaurantId)
+    )
+  }
+
+  filterByRestaurant('categories.json')
+  filterByRestaurant('products.json')
+  filterByRestaurant('orders.json')
+
+  const users = readDb('users.json')
+  if (Array.isArray(users)) {
+    writeDb(
+      'users.json',
+      users.filter((u: any) => u.restaurant_id !== restaurantId)
+    )
+  }
+
+  return true
+}
+
+export { normalizeComparableName }

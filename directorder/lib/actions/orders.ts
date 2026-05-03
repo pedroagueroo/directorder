@@ -1,6 +1,7 @@
 'use server'
 import { randomUUID } from 'crypto'
 import type { CartItem } from '@/store/cart'
+import type { Product } from '@/lib/types/database'
 import * as db from '@/lib/db'
 
 type CreateOrderInput = {
@@ -13,6 +14,8 @@ type CreateOrderInput = {
   tableId?: string
   items: CartItem[]
   notes?: string
+  /** Efectivo: entra a cocina de inmediato pero queda pendiente de cobro en el panel. */
+  paymentMethod: 'cash' | 'other'
 }
 
 export async function createOrder(input: CreateOrderInput) {
@@ -28,7 +31,7 @@ export async function createOrder(input: CreateOrderInput) {
   }
 
   const products = db.getAllProducts(input.restaurantId)
-  const productMap = new Map(products.map((product) => [product.id, product]))
+  const productMap = new Map<string, Product>(products.map((product: Product) => [product.id, product]))
   const validatedItems = input.items.map((item) => {
     const product = productMap.get(item.productId)
     if (!product || product.is_active === false) {
@@ -57,6 +60,7 @@ export async function createOrder(input: CreateOrderInput) {
       : 0
   const total = subtotal + deliveryFee
 
+  const isCash = input.paymentMethod === 'cash'
   const orderData = {
     restaurant_id: input.restaurantId,
     customer_id: null,
@@ -72,6 +76,11 @@ export async function createOrder(input: CreateOrderInput) {
     notes: input.notes ?? null,
     source: 'web',
     estimated_ready_at: null,
+    payment_method: input.paymentMethod,
+    payment_received: false,
+    payment_confirmed_at: null as string | null,
+    /** Efectivo: cocina de inmediato, cobro pendiente en panel. Otro: espera confirmación antes de cocina. */
+    status: (isCash ? 'pending' : 'awaiting_payment') as 'pending' | 'awaiting_payment',
     order_items: validatedItems,
   }
 

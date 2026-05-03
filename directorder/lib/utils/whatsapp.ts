@@ -9,6 +9,9 @@ type CheckoutData = {
   notes?: string
   /** Costo de envío (ARS) ya aplicado en el pedido; se suma al total del mensaje */
   deliveryFee?: number
+  paymentMethod?: 'cash' | 'other'
+  /** Mismo # que en el panel / toast para que el cliente lo compare con la app */
+  orderNumber?: number
 }
 
 const SEP = '────────────────────'
@@ -53,6 +56,7 @@ export function generateWhatsAppMessage(
   const parts: (string | null)[] = [
     SEP,
     '*Nuevo pedido*',
+    data.orderNumber != null ? `*Nº de pedido:* #${data.orderNumber}` : null,
     `*${restaurant.name}*`,
     SEP,
     '',
@@ -78,6 +82,11 @@ export function generateWhatsAppMessage(
           '\n'
         )
       : null,
+    '',
+    '*Forma de pago*',
+    data.paymentMethod === 'cash'
+      ? 'Efectivo (cobro pendiente al entregar / en el local)'
+      : 'Transferencia u otro — el local confirma el pago antes de preparar',
     '',
     SEP,
     '*Total a pagar*',

@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState, useCallback, useRef } from 'react'
 import toast from 'react-hot-toast'
+import { fetchWithRetry } from '@/lib/utils/fetch-with-retry'
 
 type SyncStatus = 'connected' | 'reconnecting' | 'error'
 
@@ -24,7 +25,7 @@ export function useOrders(
   const fetchOrders = useCallback(async () => {
     void restaurantId
     try {
-      const res = await fetch('/api/orders', { credentials: 'include' })
+      const res = await fetchWithRetry('/api/orders', { credentials: 'include' }, { retries: 2 })
       if (res.status === 401) {
         setOrders([])
         setError('Sesion vencida')
@@ -134,9 +135,23 @@ export function useOrders(
   return { orders, loading, error, syncStatus, lastUpdatedAt, retryInMs, updateStatus, refetch: fetchOrders }
 }
 
+let sharedAudioCtx: AudioContext | null = null
+function getAudioContext(): AudioContext | null {
+  try {
+    if (!sharedAudioCtx || sharedAudioCtx.state === 'closed') {
+      sharedAudioCtx = new AudioContext()
+    }
+    if (sharedAudioCtx.state === 'suspended') void sharedAudioCtx.resume()
+    return sharedAudioCtx
+  } catch {
+    return null
+  }
+}
+
 function playNewOrderSound() {
   try {
-    const ctx = new AudioContext()
+    const ctx = getAudioContext()
+    if (!ctx) return
     const osc = ctx.createOscillator()
     const gain = ctx.createGain()
     osc.connect(gain)
@@ -152,7 +167,8 @@ function playNewOrderSound() {
 
 function playStatusChangeSound() {
   try {
-    const ctx = new AudioContext()
+    const ctx = getAudioContext()
+    if (!ctx) return
     const osc = ctx.createOscillator()
     const gain = ctx.createGain()
     osc.connect(gain)

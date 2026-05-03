@@ -14,6 +14,8 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
   const [address, setAddress] = useState('')
   const [type, setType] = useState<'delivery' | 'pickup' | 'table'>('delivery')
   const [notes, setNotes] = useState('')
+  /** other = transferencia/MP: cocina después de confirmar en el panel. cash = va ya a cocina, cobro pendiente. */
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'other'>('other')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [nameError, setNameError] = useState('')
   const [addressError, setAddressError] = useState('')
@@ -78,9 +80,16 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
         orderType: type,
         deliveryAddress,
         items: cart.items,
-        notes: orderNotes
+        notes: orderNotes,
+        paymentMethod,
       })
-      toast.success(`Pedido #${result.orderNumber} creado correctamente`)
+
+      toast.success(
+        paymentMethod === 'cash'
+          ? `Pedido #${result.orderNumber} registrado. Ya está en cocina; el local marcará cuando cobre en efectivo.`
+          : `Pedido #${result.orderNumber} registrado. El local confirmará el pago antes de mandarlo a cocina.`,
+        { duration: 4500 }
+      )
 
       const msg = generateWhatsAppMessage(restaurant, cart.items, {
         customerName: name,
@@ -88,11 +97,11 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
         address: deliveryAddress,
         notes: orderNotes,
         deliveryFee: deliveryFee > 0 ? deliveryFee : undefined,
+        paymentMethod,
+        orderNumber: result.orderNumber,
       })
 
-      setTimeout(() => {
-        window.open(getWhatsAppUrl(restaurant.whatsapp || '', msg), '_blank')
-      }, 450)
+      window.open(getWhatsAppUrl(restaurant.whatsapp || '', msg), '_blank')
       cart.clearCart()
       onClose()
     } catch (e) {
@@ -109,12 +118,13 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
       productId: 'prod-5',
       name: 'Papas Fritas',
       price: 2200,
-      quantity: 1
+      quantity: 1,
     })
   }
 
   const isDelivery = type === 'delivery'
-  const submitBusyLabel = isDelivery && isSubmitting ? 'Verificando dirección…' : isSubmitting ? 'Enviando…' : null
+  const submitBusyLabel =
+    isDelivery && isSubmitting ? 'Verificando dirección…' : isSubmitting ? 'Enviando…' : null
   const hasWhatsAppConfigured = !!restaurant.whatsapp?.replace(/\D/g, '')
   const subtotal = cart.total()
   const deliveryFeeEstimate =
@@ -254,6 +264,40 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
 
             <div className="space-y-3">
               <div>
+                <p className="text-xs font-semibold text-muted-foreground mb-2">Forma de pago</p>
+                <div className="grid grid-cols-1 gap-1.5 p-1 bg-muted rounded-xl border border-border">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('other')}
+                    className={`min-h-11 touch-manipulation py-2.5 px-3 rounded-lg text-sm font-medium text-left transition-colors ${
+                      paymentMethod === 'other'
+                        ? 'bg-card text-foreground shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Transferencia / Mercado Pago u otro
+                    <span className="block text-[11px] font-normal text-muted-foreground mt-0.5">
+                      Cocina cuando el local confirme el pago
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('cash')}
+                    className={`min-h-11 touch-manipulation py-2.5 px-3 rounded-lg text-sm font-medium text-left transition-colors ${
+                      paymentMethod === 'cash'
+                        ? 'bg-card text-foreground shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Efectivo
+                    <span className="block text-[11px] font-normal text-muted-foreground mt-0.5">
+                      Va directo a cocina; el cobro queda pendiente en el panel
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              <div>
                 <label htmlFor="checkout-name" className="sr-only">
                   Nombre
                 </label>
@@ -360,9 +404,7 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
             <div className="flex justify-between items-baseline">
               <span className="text-sm text-muted-foreground">Envío</span>
               <span className="text-sm font-semibold tabular-nums text-foreground">
-                {deliveryFeeEstimate > 0
-                  ? `$${deliveryFeeEstimate.toLocaleString('es-AR')}`
-                  : '$0'}
+                {deliveryFeeEstimate > 0 ? `$${deliveryFeeEstimate.toLocaleString('es-AR')}` : '$0'}
               </span>
             </div>
             <div className="flex justify-between items-baseline pt-1">
@@ -382,8 +424,8 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
               {!hasWhatsAppConfigured
                 ? 'Configurar WhatsApp del local'
                 : !restaurant.is_open
-                ? 'Local cerrado'
-                : submitBusyLabel ?? 'Enviar pedido por WhatsApp'}
+                  ? 'Local cerrado'
+                  : submitBusyLabel ?? 'Enviar pedido por WhatsApp'}
             </span>
             {!isSubmitting && (
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -395,8 +437,8 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
             {!hasWhatsAppConfigured
               ? 'Falta configurar el número de WhatsApp del local para poder enviar pedidos.'
               : isDelivery
-              ? 'La dirección de delivery se valida con mapa abierto; el repartidor puede confirmar al llegar.'
-              : 'El pedido se envía por WhatsApp al local.'}
+                ? 'Se registra el pedido y se abre WhatsApp con el detalle. La dirección se valida con mapa abierto.'
+                : 'Se registra el pedido y se abre WhatsApp para que lo envíes al local.'}
           </p>
         </div>
       </div>

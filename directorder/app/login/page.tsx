@@ -1,8 +1,9 @@
 'use client'
 import { useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { login } from '@/lib/actions/auth'
 import Link from 'next/link'
+import RegisterAccountForm from '@/components/auth/RegisterAccountForm'
 
 export default function LoginPage() {
   const searchParams = useSearchParams()
@@ -12,67 +13,48 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [mode, setMode] = useState<'login' | 'register'>(initialMode)
-  const router = useRouter()
   const isLogin = mode === 'login'
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
     try {
-      if (mode === 'login') {
-        const formData = new FormData()
-        formData.append('email', email)
-        formData.append('password', password)
-        
-        const res = await login(formData)
-        if (res.error) {
-          setError(res.error)
-        } else {
-          if (res.role === 'owner') {
-            router.push('/admin/dashboard')
-          } else {
-            router.push('/staff')
-          }
-        }
-      } else {
-        const formData = new FormData()
-        formData.append('email', email)
-        formData.append('password', password)
-        
-        // Import the register function dynamically or ensure it's imported at the top
-        const { register } = await import('@/lib/actions/auth')
-        const res = await register(formData)
-        
-        if (res.error) {
-          setError(res.error)
-        } else {
-          setError('')
-          if (res.role === 'owner') {
-            router.push('/admin/dashboard')
-          } else {
-            router.push('/staff')
-          }
-        }
+      const formData = new FormData()
+      formData.append('email', email)
+      formData.append('password', password)
+
+      const res = await login(formData)
+      if (!res || typeof res !== 'object') {
+        setError('Respuesta inválida del servidor. Refrescá la página e intentá de nuevo.')
+        return
       }
-    } catch {
+      if ('error' in res && res.error) {
+        setError(String(res.error))
+        return
+      }
+      const roleRaw = 'role' in res ? String(res.role) : 'owner'
+      const dest = roleRaw === 'owner' ? '/admin/dashboard' : '/staff'
+      window.location.assign(dest)
+    } catch (e) {
+      const detail = e instanceof Error ? e.message : ''
       setError(
-        isLogin
-          ? 'No se pudo iniciar sesión por un error inesperado. Probá de nuevo.'
-          : 'No se pudo crear la cuenta por un error inesperado. Probá de nuevo.'
+        detail
+          ? `Error de conexión: ${detail}`
+          : 'No se pudo iniciar sesión (red o servidor). Probá de nuevo.'
       )
     }
     setLoading(false)
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 flex items-center justify-center px-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 flex items-center justify-center px-4 py-10 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-orange-500/10 blur-[120px]" />
-      <div className="absolute -bottom-20 -left-20 w-[400px] h-[400px] rounded-full bg-amber-500/8 blur-[100px]" />
+      <div className="absolute -bottom-20 -left-20 w-[400px] h-[500px] rounded-full bg-amber-500/8 blur-[100px]" />
 
-      <div className="w-full max-w-md relative z-10">
+      <div className={`w-full relative z-10 ${isLogin ? 'max-w-md' : 'max-w-lg'}`}>
         {/* Logo */}
         <div className="text-center mb-10">
           <div className="mb-5">
@@ -90,7 +72,7 @@ export default function LoginPage() {
             <span className="font-extrabold text-3xl text-white tracking-tight">DirectOrder</span>
           </div>
           <p className="text-white/40 font-medium">
-            {isLogin ? 'Ingresá a tu panel de administración' : 'Creá tu cuenta y lanzá tu menú en minutos'}
+            {isLogin ? 'Ingresá a tu panel de administración' : 'Creá tu cuenta con los datos de tu local'}
           </p>
         </div>
 
@@ -132,57 +114,61 @@ export default function LoginPage() {
           {!isLogin && (
             <div className="mb-5 rounded-2xl border border-orange-300/30 bg-orange-500/10 p-4">
               <p className="text-sm font-extrabold text-orange-100">Tu cuenta incluye desde el día 1:</p>
-              <p className="mt-1 text-sm text-orange-200/90">Menú online, pedidos por WhatsApp, KDS y Centro de Control.</p>
+              <p className="mt-1 text-sm text-orange-200/90">
+                Menú online, pedidos por WhatsApp, KDS y Centro de Control. El nombre del local define la URL pública
+                de tu menú (se puede ajustar en configuración).
+              </p>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-white/60 text-sm font-bold mb-2">Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                className="w-full p-4 rounded-xl bg-white/[0.06] border border-white/[0.08] text-white placeholder:text-white/30 focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 outline-none transition-all font-medium"
-                placeholder="tu@email.com"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-white/60 text-sm font-bold mb-2">Contraseña</label>
-              <input
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                className="w-full p-4 rounded-xl bg-white/[0.06] border border-white/[0.08] text-white placeholder:text-white/30 focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 outline-none transition-all font-medium"
-                placeholder="••••••••"
-                required
-                minLength={6}
-              />
-            </div>
-
-            {error && (
-              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm font-bold">
-                ⚠️ {error}
+          {isLogin ? (
+            <form onSubmit={handleLoginSubmit} className="space-y-5">
+              <div>
+                <label className="block text-white/60 text-sm font-bold mb-2">Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full p-4 rounded-xl bg-white/[0.06] border border-white/[0.08] text-white placeholder:text-white/30 focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 outline-none transition-all font-medium"
+                  placeholder="tu@email.com"
+                  required
+                />
               </div>
-            )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full py-4 rounded-xl font-extrabold text-lg transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] ${
-                isLogin
-                  ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50'
-                  : 'bg-white text-gray-900 hover:bg-orange-50'
-              }`}
-            >
-              {loading ? '⏳ Cargando...' : isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}
-            </button>
-          </form>
+              <div>
+                <label className="block text-white/60 text-sm font-bold mb-2">Contraseña</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full p-4 rounded-xl bg-white/[0.06] border border-white/[0.08] text-white placeholder:text-white/30 focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 outline-none transition-all font-medium"
+                  placeholder="••••••••"
+                  required
+                  minLength={6}
+                />
+              </div>
+
+              {error && (
+                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm font-bold">
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-4 rounded-xl font-extrabold text-lg transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50"
+              >
+                {loading ? '⏳ Cargando...' : 'Iniciar Sesión'}
+              </button>
+            </form>
+          ) : (
+            <RegisterAccountForm variant="login" submitLabel="Crear cuenta" showLoginLink={false} />
+          )}
 
           <div className="mt-6 text-center">
             <button
+              type="button"
               onClick={() => {
                 setMode(isLogin ? 'register' : 'login')
                 setError('')

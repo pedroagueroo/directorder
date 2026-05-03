@@ -50,6 +50,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Pedido no encontrado' }, { status: 404 })
     }
 
+    if (body.action === 'markCashReceived' && body.orderId) {
+      const order = db.getOrderById(body.orderId)
+      if (!order || order.restaurant_id !== restaurantId) {
+        return NextResponse.json({ error: 'Pedido no encontrado' }, { status: 404 })
+      }
+      const updated = db.markOrderCashReceived(restaurantId, body.orderId)
+      if (updated) return NextResponse.json({ success: true })
+      return NextResponse.json({ error: 'No se pudo marcar el cobro' }, { status: 400 })
+    }
+
     return NextResponse.json({ error: 'Acción no válida' }, { status: 400 })
   } catch (e) {
     return NextResponse.json({ error: 'Error procesando' }, { status: 500 })
