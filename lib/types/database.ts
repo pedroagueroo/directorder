@@ -17,6 +17,8 @@ export type Restaurant = {
   delivery_fee: number
   avg_prep_minutes: number
   is_open: boolean
+  kds_sound_new_order?: boolean
+  kds_sound_status_change?: boolean
 }
 
 export type Category = {
@@ -38,8 +40,10 @@ export type Product = {
   compare_price: number | null
   image_url: string | null
   tags: string[]
+  ingredients?: string[]
   is_featured: boolean
   is_available: boolean
+  is_active: boolean
   stock: number | null
   prep_minutes: number
   sort_order: number
@@ -52,29 +56,41 @@ export type Order = {
   customer_id: string | null
   table_id: string | null
   order_number: number
-  status: 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
+  status:
+    | 'awaiting_payment'
+    | 'pending'
+    | 'preparing'
+    | 'ready'
+    | 'delivered'
+    | 'cancelled'
   type: 'pickup' | 'delivery' | 'table'
   customer_name: string | null
   customer_phone: string | null
   delivery_address: string | null
   subtotal: number
-  delivery_fee: number
-  discount: number
+  delivery_fee?: number
+  discount?: number
   total: number
   notes: string | null
   source: string | null
   estimated_ready_at: string | null
   accepted_at: string | null
+  /** Cuando el local confirmó el pago y el pedido pasó a cocina (pending). */
+  payment_confirmed_at?: string | null
+  /** cash = va directo a cocina; cobro marcado en panel. other = espera confirmación remota antes de cocina. */
+  payment_method?: 'cash' | 'other'
+  /** true cuando el dinero quedó acreditado / cobrado (transferencia confirmada o efectivo cobrado). */
+  payment_received?: boolean
   ready_at: string | null
   delivered_at: string | null
   created_at: string
-  updated_at: string
+  updated_at?: string
   order_items?: OrderItem[]
 }
 
 export type OrderItem = {
   id: string
-  order_id: string
+  order_id?: string
   product_id: string | null
   product_name: string
   product_price: number

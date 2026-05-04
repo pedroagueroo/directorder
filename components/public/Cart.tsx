@@ -12,29 +12,23 @@ export default function CartBar({ restaurant }: { restaurant: Restaurant }) {
 
   return (
     <>
-      <div className="fixed bottom-0 left-0 right-0 p-4 z-40 md:justify-center md:flex pointer-events-none">
-        <button 
+      <div className="fixed bottom-0 left-0 right-0 z-40 p-4 pb-safe md:justify-center md:flex pointer-events-none">
+        <button
+          type="button"
           onClick={() => setIsOpen(true)}
-          className="pointer-events-auto w-full md:w-[400px] bg-primary text-primary-foreground rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.2)] flex items-center justify-between hover:bg-primary/95 transition-all hover:-translate-y-1 active:scale-95"
+          className="pointer-events-auto w-full min-h-12 touch-manipulation md:max-w-md bg-primary text-primary-foreground rounded-2xl px-5 py-3.5 sm:py-4 shadow-[0_8px_32px_-8px_rgba(0,0,0,0.22)] flex items-center justify-between hover:opacity-[0.96] transition-opacity active:scale-[0.99]"
         >
           <div className="flex items-center gap-3">
-            <div className="bg-white/20 rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">
+            <div className="bg-primary-foreground/15 rounded-lg w-9 h-9 flex items-center justify-center text-sm font-semibold tabular-nums">
               {cart.itemCount()}
             </div>
-            <span className="font-bold text-lg tracking-wide">VER PEDIDO</span>
+            <span className="font-semibold text-base tracking-tight">Ver pedido</span>
           </div>
-          <span className="font-extrabold text-xl drop-shadow-md">
-            ${cart.total()}
-          </span>
+          <span className="font-semibold text-lg tabular-nums">${cart.total()}</span>
         </button>
       </div>
-      
-      {isOpen && (
-        <CartModal 
-          restaurant={restaurant} 
-          onClose={() => setIsOpen(false)} 
-        />
-      )}
+
+      {isOpen && <CartModal restaurant={restaurant} onClose={() => setIsOpen(false)} />}
     </>
   )
 }
