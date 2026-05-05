@@ -3,9 +3,10 @@
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import * as db from '@/lib/db'
+import { getAuthActiveBranchId } from '@/lib/server/auth-restaurant'
 
 export async function setRestaurantOpenAction(isOpen: boolean) {
-  const restaurantId = cookies().get('auth-restaurant-id')?.value
+  const restaurantId = getAuthActiveBranchId()
   if (!restaurantId) return { error: 'Sesión inválida' }
 
   const updated = db.updateRestaurant(restaurantId, { is_open: isOpen })

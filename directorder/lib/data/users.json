@@ -5,7 +5,8 @@
     "password": "sc1:6d83fb5173ea96c1819cb056bd67df6d:7d47c4c5e38e77068f129ed1b2ce051f5cf77afe8e1eab99e2162956fe88bd81daa6306c5fbf1810e11c49701a5ce2cdd75492ba5d4d61112126a13856cf9885",
     "role": "owner",
     "restaurant_id": "rest-1777427833257",
-    "name": "prueba"
+    "name": "prueba",
+    "brand_id": "brand-rest-1777427833257"
   },
   {
     "id": "user-1777519832058",
@@ -13,6 +14,7 @@
     "password": "petito",
     "role": "owner",
     "restaurant_id": "rest-1777519832055",
-    "name": "petitoburger"
+    "name": "petitoburger",
+    "brand_id": "brand-rest-1777519832055"
   }
 ]

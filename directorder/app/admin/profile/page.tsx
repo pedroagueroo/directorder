@@ -2,9 +2,10 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import * as db from '@/lib/db'
 import ProfileClient from './ProfileClient'
+import { getAuthActiveBranchId } from '@/lib/server/auth-restaurant'
 
 export default function AdminProfilePage() {
-  const restaurantId = cookies().get('auth-restaurant-id')?.value
+  const restaurantId = getAuthActiveBranchId()
   const userId = cookies().get('auth-user-id')?.value
 
   if (!restaurantId || !userId) redirect('/login')

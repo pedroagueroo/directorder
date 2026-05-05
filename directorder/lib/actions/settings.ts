@@ -3,6 +3,7 @@
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import * as db from '@/lib/db'
+import { getAuthActiveBranchId } from '@/lib/server/auth-restaurant'
 
 function toNumber(value: FormDataEntryValue | null, fallback = 0) {
   const n = Number(String(value ?? '').trim())
@@ -10,10 +11,12 @@ function toNumber(value: FormDataEntryValue | null, fallback = 0) {
 }
 
 export async function updateRestaurantSettingsAction(formData: FormData) {
-  const restaurantId = cookies().get('auth-restaurant-id')?.value
+  const restaurantId = getAuthActiveBranchId()
   if (!restaurantId) return { error: 'Sesion invalida.' }
 
-  const section = String(formData.get('section') ?? '').trim()
+  const sectionRaw = String(formData.get('section') ?? '').trim()
+  const section = sectionRaw.split(':')[0]
+  const sectionPayload = sectionRaw.includes(':') ? sectionRaw.slice(sectionRaw.indexOf(':') + 1) : ''
   if (!section) return { error: 'Seccion de configuracion invalida.' }
 
   let updates: Record<string, unknown> = {}
@@ -46,6 +49,52 @@ export async function updateRestaurantSettingsAction(formData: FormData) {
       primary_color: String(formData.get('primary_color') ?? '').trim() || '#e85d04',
       secondary_color: String(formData.get('secondary_color') ?? '').trim() || '#f48c06',
     }
+  } else if (section === 'branch_create') {
+    const userId = cookies().get('auth-user-id')?.value
+    if (!userId) return { error: 'Sesion invalida.' }
+    const user = db.getUserById(userId)
+    if (!user?.brand_id) return { error: 'No se encontró la marca de esta cuenta.' }
+    if (user.role !== 'owner') return { error: 'Solo el dueño puede crear sucursales.' }
+    const branchName = String(formData.get('branch_name') ?? '').trim()
+    const branchAddress = String(formData.get('branch_address') ?? '').trim()
+    const branchWhatsapp = String(formData.get('branch_whatsapp') ?? '').trim()
+    const shareMenu = formData.get('branch_share_menu') === 'on'
+    if (branchName.length < 2) return { error: 'El nombre de la sucursal es obligatorio.' }
+    const source = shareMenu ? restaurantId : null
+    db.createBranchForBrand(String(user.brand_id), {
+      name: branchName,
+      address: branchAddress || null,
+      whatsapp: branchWhatsapp || null,
+      shareMenuFromRestaurantId: source,
+    })
+    revalidatePath('/admin/settings')
+    return { ok: true }
+  } else if (section === 'branch_delete') {
+    const userId = cookies().get('auth-user-id')?.value
+    if (!userId) return { error: 'Sesion invalida.' }
+    const user = db.getUserById(userId)
+    if (!user?.brand_id) return { error: 'No se encontró la marca de esta cuenta.' }
+    if (user.role !== 'owner') return { error: 'Solo el dueño puede eliminar sucursales.' }
+    const branchId = sectionPayload || String(formData.get('branch_id') ?? '')
+    const out = db.deleteBranchForBrand(String(user.brand_id), branchId)
+    if (!out.ok) return { error: out.error || 'No se pudo eliminar la sucursal.' }
+    if (branchId === restaurantId) {
+      const remaining = db.getRestaurantsByBrandId(String(user.brand_id))
+      if (remaining[0]?.id) {
+        cookies().set('auth-active-branch-id', String(remaining[0].id), {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          path: '/',
+        })
+        cookies().set('auth-restaurant-id', String(remaining[0].id), {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          path: '/',
+        })
+      }
+    }
+    revalidatePath('/admin/settings')
+    return { ok: true }
   } else {
     return { error: 'Seccion no reconocida.' }
   }

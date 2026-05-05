@@ -8,7 +8,15 @@ import { updateRestaurantSettingsAction } from '@/lib/actions/settings'
 
 type EditableSection = 'local' | 'channels' | 'visual' | null
 
-export default function SettingsClient({ restaurant }: { restaurant: Restaurant }) {
+export default function SettingsClient({
+  restaurant,
+  branches,
+  isOwner,
+}: {
+  restaurant: Restaurant
+  branches: Restaurant[]
+  isOwner: boolean
+}) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState('')
@@ -36,7 +44,7 @@ export default function SettingsClient({ restaurant }: { restaurant: Restaurant 
       <div>
         <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-2">Configuracion</h1>
         <p className="text-muted-foreground font-semibold text-base sm:text-lg text-foreground/60">
-          Datos clave del local y canales de venta.
+          Datos clave del local, canales de venta y sucursales.
         </p>
       </div>
 
@@ -246,6 +254,101 @@ export default function SettingsClient({ restaurant }: { restaurant: Restaurant 
             )}
           </section>
         </form>
+
+        <section className="rounded-[2rem] border border-border/80 bg-gradient-to-br from-card to-muted/30 p-5 sm:p-7 space-y-4 shadow-sm">
+          <h2 className="text-xl font-black tracking-tight">Sucursales</h2>
+          <form
+            action={(formData) =>
+              startTransition(async () => {
+                setError('')
+                setSuccess('')
+                const res = await updateRestaurantSettingsAction(formData)
+                if (res?.error) {
+                  setError(res.error)
+                  return
+                }
+                setSuccess('Sucursal creada correctamente.')
+                router.refresh()
+              })
+            }
+          >
+            {isOwner ? (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <LabeledInput
+                    name="branch_name"
+                    label="Nombre de nueva sucursal"
+                    placeholder="Ej. Constitución"
+                    required
+                  />
+                  <LabeledInput name="branch_address" label="Dirección" placeholder="Ej. Av. Constitución 6000" />
+                  <LabeledInput name="branch_whatsapp" label="WhatsApp" placeholder="Ej. 2231234567" />
+                </div>
+                <Check name="branch_share_menu" label="Compartir menú con la sucursal actual" defaultChecked />
+                <SectionSaveButton
+                  pending={isPending}
+                  label="Crear sucursal"
+                  submitName="section"
+                  submitValue="branch_create"
+                />
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">Solo el dueño puede crear o eliminar sucursales.</p>
+            )}
+          </form>
+
+          <div className="pt-2 border-t border-border/60 space-y-2">
+            <p className="text-sm font-semibold text-foreground/75">Sucursales de tu marca</p>
+            {branches.map((b) => (
+              <div
+                key={b.id}
+                className={`rounded-xl border p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 ${
+                  b.id === restaurant.id ? 'border-primary/40 bg-primary/5' : 'border-border bg-background/60'
+                }`}
+              >
+                <div>
+                  <p className="font-bold">
+                    {b.name} {b.id === restaurant.id ? <span className="text-xs text-primary">(activa)</span> : null}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    /{b.slug} · {b.address || 'Sin dirección'} · {b.whatsapp || 'Sin WhatsApp'}
+                  </p>
+                </div>
+                {isOwner && b.id !== restaurant.id ? (
+                  <form
+                    action={(formData) =>
+                      startTransition(async () => {
+                        setError('')
+                        setSuccess('')
+                        const res = await updateRestaurantSettingsAction(formData)
+                        if (res?.error) {
+                          setError(res.error)
+                          return
+                        }
+                        setSuccess('Sucursal eliminada.')
+                        router.refresh()
+                      })
+                    }
+                    className="shrink-0"
+                  >
+                    <input type="hidden" name="section" value={`branch_delete:${b.id}`} />
+                    <button
+                      type="submit"
+                      className="px-3 py-2 rounded-lg border border-rose-300 text-rose-700 text-sm font-semibold bg-rose-50 hover:bg-rose-100"
+                      onClick={(e) => {
+                        if (!confirm(`¿Eliminar sucursal "${b.name}"?`)) {
+                          e.preventDefault()
+                        }
+                      }}
+                    >
+                      Eliminar
+                    </button>
+                  </form>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
     </div>
   )
@@ -352,15 +455,30 @@ function SectionHeader({
   )
 }
 
-function SectionSaveButton({ pending }: { pending: boolean }) {
+function SectionSaveButton({
+  pending,
+  label,
+  onClick,
+  submitName,
+  submitValue,
+}: {
+  pending: boolean
+  label?: string
+  onClick?: () => void
+  submitName?: string
+  submitValue?: string
+}) {
   return (
     <div className="flex justify-end pt-2">
       <button
         type="submit"
+        name={submitName}
+        value={submitValue}
         disabled={pending}
+        onClick={onClick}
         className="px-6 py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold shadow-[0_10px_30px_-12px_hsl(var(--primary)/0.55)] hover:bg-primary/90 disabled:opacity-60"
       >
-        {pending ? 'Guardando...' : 'Guardar seccion'}
+        {pending ? 'Guardando...' : label || 'Guardar seccion'}
       </button>
     </div>
   )

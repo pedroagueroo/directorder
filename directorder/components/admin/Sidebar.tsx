@@ -1,10 +1,14 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, UtensilsCrossed, ShoppingBag, Settings, LogOut, User } from 'lucide-react'
+import { LayoutDashboard, UtensilsCrossed, ShoppingBag, Settings, LogOut, User, Store } from 'lucide-react'
+import toast from 'react-hot-toast'
 import { logout } from '@/lib/actions/auth'
 
-export default function Sidebar() {
+const branchSwitcherClass =
+  'flex items-center gap-3 w-full px-4 py-3 rounded-2xl font-bold text-foreground/75 hover:bg-muted hover:text-foreground transition-colors text-left'
+
+export default function Sidebar({ hasMultipleBranches }: { hasMultipleBranches: boolean }) {
   const pathname = usePathname()
 
   const handleLogout = async () => {
@@ -40,6 +44,23 @@ export default function Sidebar() {
            >
              <User size={19} /> Ver perfil
            </Link>
+          {hasMultipleBranches ? (
+            <Link href="/select-branch" className={branchSwitcherClass}>
+              <Store size={19} /> Cambiar sucursal
+            </Link>
+          ) : (
+            <button
+              type="button"
+              className={branchSwitcherClass}
+              onClick={() =>
+                toast.error('No podés cambiar de sucursal: no tenés otra sucursal cargada.', {
+                  duration: 4000,
+                })
+              }
+            >
+              <Store size={19} /> Cambiar sucursal
+            </button>
+          )}
            <button
              onClick={handleLogout}
              className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl font-bold text-rose-500 hover:bg-rose-500/10 transition-colors"

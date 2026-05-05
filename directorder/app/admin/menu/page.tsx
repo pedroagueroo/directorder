@@ -1,10 +1,10 @@
-import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import * as db from '@/lib/db'
 import MenuManager from './MenuManager'
+import { getAuthActiveBranchId } from '@/lib/server/auth-restaurant'
 
 export default async function AdminMenuPage() {
-  const restaurantId = cookies().get('auth-restaurant-id')?.value
+  const restaurantId = getAuthActiveBranchId()
   if (!restaurantId) redirect('/login')
 
   db.ensureDefaultCategories(restaurantId)

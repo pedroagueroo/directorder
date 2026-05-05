@@ -2,6 +2,7 @@ import { cookies } from 'next/headers'
 import Sidebar from '@/components/admin/Sidebar'
 import * as db from '@/lib/db'
 import { redirect } from 'next/navigation'
+import { getAuthActiveBranchId } from '@/lib/server/auth-restaurant'
 
 function hexToHslChannels(hex: string, fallback: string) {
   const normalized = String(hex || '').trim().replace('#', '')
@@ -37,13 +38,13 @@ function hexToHslChannels(hex: string, fallback: string) {
 }
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const restaurantId = cookies().get('auth-restaurant-id')?.value
+  const restaurantId = getAuthActiveBranchId()
   const userId = cookies().get('auth-user-id')?.value
   const user = userId ? db.getUserById(userId) : null
-  const restaurant =
-    restaurantId && user && user.restaurant_id === restaurantId
-      ? db.getRestaurantById(restaurantId)
-      : null
+  const canAccessRestaurant =
+    Boolean(restaurantId && user?.brand_id) &&
+    db.getRestaurantsByBrandId(String(user?.brand_id)).some((r: any) => r.id === restaurantId)
+  const restaurant = canAccessRestaurant && restaurantId ? db.getRestaurantById(restaurantId) : null
 
   if (!restaurant || !user) {
     redirect('/login')
@@ -56,12 +57,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     '--ring': primary,
   } as Record<string, string>
 
+  const hasMultipleBranches = db.getBranchesForUser(String(user.id)).length > 1
+
   return (
     <div
       className="flex h-screen bg-muted/30 overflow-hidden font-sans"
       style={adminThemeVars}
     >
-       <Sidebar />
+       <Sidebar hasMultipleBranches={hasMultipleBranches} />
        <main className="flex-1 overflow-y-auto">
           {children}
        </main>

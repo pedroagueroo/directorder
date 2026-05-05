@@ -1,10 +1,10 @@
-import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import StaffClient from './StaffClient'
 import * as db from '@/lib/db'
+import { getAuthActiveBranchId } from '@/lib/server/auth-restaurant'
 
 export default function StaffPage() {
-  const restaurantId = cookies().get('auth-restaurant-id')?.value
+  const restaurantId = getAuthActiveBranchId()
   if (!restaurantId) redirect('/login')
   const restaurant = db.getRestaurantById(restaurantId)
 

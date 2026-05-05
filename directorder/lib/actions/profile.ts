@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import * as db from '@/lib/db'
 import { hashPassword, verifyPassword } from '@/lib/server/password'
+import { getAuthActiveBranchId } from '@/lib/server/auth-restaurant'
 
 const DEMO_RESTAURANT_IDS = new Set(['demo-id'])
 const DEMO_SLUGS = new Set(['demo-burger'])
@@ -67,7 +68,7 @@ export async function deleteAccountAction(formData: FormData) {
   }
 
   const userId = cookies().get('auth-user-id')?.value
-  const restaurantId = cookies().get('auth-restaurant-id')?.value
+  const restaurantId = getAuthActiveBranchId()
   if (!userId || !restaurantId) return { error: 'Sesión inválida.' }
 
   const user = db.getUserById(userId)
@@ -104,12 +105,15 @@ export async function deleteAccountAction(formData: FormData) {
     }
   }
 
-  const ok = db.purgeRestaurantTenant(restaurantId)
+  const brandId = String(user.brand_id || restaurant.brand_id || '')
+  if (!brandId) return { error: 'No se pudo resolver la marca de la cuenta.' }
+  const ok = db.purgeBrandTenant(brandId)
   if (!ok) return { error: 'No se pudo completar la eliminación. Probá más tarde.' }
 
   cookies().delete('auth-role')
   cookies().delete('auth-user-id')
   cookies().delete('auth-restaurant-id')
+  cookies().delete('auth-active-branch-id')
 
   return { ok: true as const }
 }

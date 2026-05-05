@@ -6,9 +6,10 @@ import fs from 'fs'
 import path from 'path'
 import { randomUUID } from 'crypto'
 import * as db from '@/lib/db'
+import { getAuthActiveBranchId } from '@/lib/server/auth-restaurant'
 
 function getRestaurantIdFromSession() {
-  return cookies().get('auth-restaurant-id')?.value ?? null
+  return getAuthActiveBranchId()
 }
 
 async function saveUploadedImage(file: File) {

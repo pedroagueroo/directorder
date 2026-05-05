@@ -35,7 +35,13 @@ export default function LoginPage() {
         return
       }
       const roleRaw = 'role' in res ? String(res.role) : 'owner'
-      const dest = roleRaw === 'owner' ? '/admin/dashboard' : '/staff'
+      const needsBranchSelection =
+        'needsBranchSelection' in res && Boolean((res as { needsBranchSelection?: boolean }).needsBranchSelection)
+      const dest = needsBranchSelection
+        ? '/select-branch'
+        : roleRaw === 'owner'
+          ? '/admin/dashboard'
+          : '/staff'
       window.location.assign(dest)
     } catch (e) {
       const detail = e instanceof Error ? e.message : ''

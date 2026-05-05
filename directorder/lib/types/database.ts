@@ -1,5 +1,11 @@
 export type Restaurant = {
   id: string
+  /** Marca/empresa dueña de esta sucursal. */
+  brand_id?: string
+  /** true si esta fila representa una sucursal física/operativa. */
+  is_branch?: boolean
+  /** Si comparte menú con otra sucursal, apunta al restaurant_id fuente. */
+  menu_source_restaurant_id?: string | null
   slug: string
   name: string
   description: string | null
@@ -113,7 +119,10 @@ export type Customer = {
 
 export type User = {
   id: string
+  /** Sucursal inicial/legacy para compatibilidad. */
   restaurant_id: string
+  /** Marca del usuario (multi-sucursal). */
+  brand_id?: string
   email: string
   role: 'owner' | 'admin' | 'employee'
   full_name: string | null

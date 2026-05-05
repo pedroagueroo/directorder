@@ -13,6 +13,7 @@ export async function login(formData: FormData) {
     cookies().delete('auth-role')
     cookies().delete('auth-user-id')
     cookies().delete('auth-restaurant-id')
+    cookies().delete('auth-active-branch-id')
 
     const user = db.authenticateUser(email, password)
 
@@ -28,20 +29,33 @@ export async function login(formData: FormData) {
 
     const role = String(user.role ?? 'owner')
     const userId = String(user.id ?? '')
-    const restaurantId = String(user.restaurant_id ?? '')
-    if (!userId || !restaurantId) {
+    const defaultBranchId = String(user.restaurant_id ?? '')
+    if (!userId || !defaultBranchId) {
       return { error: 'La cuenta está incompleta (sin local asociado). Contactá soporte.' }
     }
 
+    const branches = db.getBranchesForUser(userId)
+    if (branches.length === 0) {
+      return { error: 'No hay sucursales asociadas a esta cuenta.' }
+    }
+    const activeBranchId = branches.some((b: any) => b.id === defaultBranchId)
+      ? defaultBranchId
+      : String(branches[0].id)
+
     cookies().set('auth-role', role, { httpOnly: true, secure: process.env.NODE_ENV === 'production', path: '/' })
     cookies().set('auth-user-id', userId, { httpOnly: true, secure: process.env.NODE_ENV === 'production', path: '/' })
-    cookies().set('auth-restaurant-id', restaurantId, {
+    cookies().set('auth-restaurant-id', activeBranchId, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+    })
+    cookies().set('auth-active-branch-id', activeBranchId, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       path: '/',
     })
 
-    return { success: true, role }
+    return { success: true, role, needsBranchSelection: branches.length > 1 }
   } catch (e) {
     const msg = e instanceof Error ? e.message : 'Error interno'
     console.error('[login]', msg)
@@ -53,6 +67,7 @@ export async function logout() {
   cookies().delete('auth-role')
   cookies().delete('auth-user-id')
   cookies().delete('auth-restaurant-id')
+  cookies().delete('auth-active-branch-id')
 }
 
 export async function register(formData: FormData) {
@@ -106,6 +121,39 @@ export async function register(formData: FormData) {
   cookies().set('auth-role', result.user.role, { httpOnly: true, secure: process.env.NODE_ENV === 'production', path: '/' })
   cookies().set('auth-user-id', result.user.id, { httpOnly: true, secure: process.env.NODE_ENV === 'production', path: '/' })
   cookies().set('auth-restaurant-id', result.user.restaurant_id, { httpOnly: true, secure: process.env.NODE_ENV === 'production', path: '/' })
+  cookies().set('auth-active-branch-id', result.user.restaurant_id, { httpOnly: true, secure: process.env.NODE_ENV === 'production', path: '/' })
 
   return { success: true, role: result.user.role }
+}
+
+export async function listMyBranches() {
+  const userId = cookies().get('auth-user-id')?.value
+  if (!userId) return { error: 'Sesión inválida.' }
+  const branches = db.getBranchesForUser(userId).map((b: any) => ({
+    id: String(b.id),
+    name: String(b.name || 'Sucursal'),
+    slug: String(b.slug || ''),
+    address: b.address ? String(b.address) : null,
+  }))
+  return { branches }
+}
+
+export async function setActiveBranch(branchId: string) {
+  const userId = cookies().get('auth-user-id')?.value
+  if (!userId) return { error: 'Sesión inválida.' }
+  const branches = db.getBranchesForUser(userId)
+  const target = branches.find((b: any) => b.id === branchId)
+  if (!target) return { error: 'Sucursal inválida para esta cuenta.' }
+
+  cookies().set('auth-restaurant-id', branchId, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+  })
+  cookies().set('auth-active-branch-id', branchId, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+  })
+  return { ok: true }
 }

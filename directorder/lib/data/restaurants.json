@@ -17,7 +17,10 @@
     "avg_prep_minutes": 25,
     "logo_url": null,
     "banner_url": null,
-    "address": null
+    "address": null,
+    "brand_id": "brand-demo-id",
+    "is_branch": true,
+    "menu_source_restaurant_id": "demo-id"
   },
   {
     "id": "rest-1777321281725",
@@ -37,7 +40,10 @@
     "avg_prep_minutes": 30,
     "logo_url": null,
     "banner_url": null,
-    "address": null
+    "address": null,
+    "brand_id": "brand-rest-1777321281725",
+    "is_branch": true,
+    "menu_source_restaurant_id": "rest-1777321281725"
   },
   {
     "id": "rest-1777427833257",
@@ -59,7 +65,10 @@
     "banner_url": null,
     "address": "Rodrigues Peña 4984",
     "kds_sound_new_order": true,
-    "kds_sound_status_change": true
+    "kds_sound_status_change": true,
+    "brand_id": "brand-rest-1777427833257",
+    "is_branch": true,
+    "menu_source_restaurant_id": "rest-1777427833257"
   },
   {
     "id": "rest-1777484554337",
@@ -81,7 +90,10 @@
     "kds_sound_status_change": true,
     "logo_url": null,
     "banner_url": null,
-    "address": null
+    "address": null,
+    "brand_id": "brand-rest-1777484554337",
+    "is_branch": true,
+    "menu_source_restaurant_id": "rest-1777484554337"
   },
   {
     "id": "rest-1777485177486",
@@ -103,7 +115,10 @@
     "kds_sound_status_change": true,
     "logo_url": null,
     "banner_url": null,
-    "address": null
+    "address": null,
+    "brand_id": "brand-rest-1777485177486",
+    "is_branch": true,
+    "menu_source_restaurant_id": "rest-1777485177486"
   },
   {
     "id": "rest-1777519832055",
@@ -125,6 +140,9 @@
     "kds_sound_status_change": true,
     "logo_url": null,
     "banner_url": null,
-    "address": null
+    "address": null,
+    "brand_id": "brand-rest-1777519832055",
+    "is_branch": true,
+    "menu_source_restaurant_id": "rest-1777519832055"
   }
 ]
