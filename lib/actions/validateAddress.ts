@@ -121,9 +121,4 @@ export async function validateDeliveryAddress(
   }
 }
 
-/** @deprecated Usar validateDeliveryAddress con sufijo configurable */
-export async function validateMarDelPlataAddress(
-  address: string
-): Promise<{ ok: true } | { ok: false; message: string }> {
-  return validateDeliveryAddress(address, 'Mar del Plata, Buenos Aires, Argentina')
-}
+

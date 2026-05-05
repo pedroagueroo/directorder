@@ -19,7 +19,7 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(new URL('/select-branch', req.url))
     }
 
-    if (path.startsWith('/admin') && role !== 'owner') {
+    if (path.startsWith('/admin') && role !== 'owner' && role !== 'admin') {
       return NextResponse.redirect(new URL('/staff', req.url))
     }
   }

@@ -30,6 +30,17 @@ export async function createOrder(input: CreateOrderInput) {
   if (!restaurant.is_open) throw new Error('El local está cerrado en este momento.')
   if (!input.items.length) throw new Error('El pedido no puede estar vacío.')
 
+  // Validate order type against restaurant settings
+  if (input.orderType === 'delivery' && !restaurant.delivery_enabled) {
+    throw new Error('Este local no tiene delivery habilitado.')
+  }
+  if (input.orderType === 'pickup' && !restaurant.pickup_enabled) {
+    throw new Error('Este local no tiene retiro en local habilitado.')
+  }
+  if (input.orderType === 'table' && !restaurant.table_mode_enabled) {
+    throw new Error('Este local no tiene modo mesa habilitado.')
+  }
+
   const menuRestaurantId = getMenuRestaurantIdFromRow(
     restaurant as { id: string; menu_source_restaurant_id?: string | null }
   )
@@ -71,6 +82,12 @@ export async function createOrder(input: CreateOrderInput) {
   const subtotal = validatedItems.reduce((sum, item) => sum + item.product_price * item.quantity, 0)
   const deliveryFee = input.orderType === 'delivery' ? Number(restaurant.delivery_fee) || 0 : 0
   const total = subtotal + deliveryFee
+
+  // Validate minimum order amount
+  const minOrder = Number(restaurant.min_order_amount) || 0
+  if (minOrder > 0 && total < minOrder) {
+    throw new Error(`El pedido mínimo es de $${minOrder.toLocaleString('es-AR')}. Tu pedido es de $${total.toLocaleString('es-AR')}.`)
+  }
   const isCash = input.paymentMethod === 'cash'
 
   // Create order
