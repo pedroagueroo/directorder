@@ -79,6 +79,7 @@ export function useDashboardAnalytics(
       }
       if (!res.ok) throw new Error('No se pudo actualizar el panel')
       const orders = await res.json()
+      if (!Array.isArray(orders)) throw new Error('Respuesta inválida del servidor')
       const summary = summarizeDailySales(orders, DEFAULT_ANALYTICS_TIMEZONE)
       const pendingOrders = orders.filter((o: any) => o.status === 'pending').length
       const preparingOrders = orders.filter((o: any) => o.status === 'preparing').length

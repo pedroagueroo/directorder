@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { deleteAccountAction, updateProfileCredentialsAction } from '@/lib/actions/profile'
 
@@ -43,6 +44,11 @@ export default function ProfileClient({
 
   return (
     <div className="p-4 sm:p-8 md:p-10 max-w-[900px] mx-auto space-y-8 animate-in fade-in duration-500">
+      <div className="mb-2">
+        <Link href="/admin/dashboard" className="text-sm font-bold text-primary hover:underline">
+          ← Centro de Control
+        </Link>
+      </div>
       <div>
         <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-2">{restaurantName}</h1>
         <p className="text-muted-foreground font-semibold text-base sm:text-lg text-foreground/60">

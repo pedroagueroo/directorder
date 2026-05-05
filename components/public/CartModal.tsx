@@ -112,8 +112,10 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
     }
   }
 
-  const hasPapas = cart.items.some((i) => i.productId === 'prod-5')
+  const isDemoMenu = restaurant.slug === 'demo-burger'
+  const hasPapas = isDemoMenu && cart.items.some((i) => i.productId === 'prod-5')
   const handleUpsell = () => {
+    if (!isDemoMenu) return
     cart.addItem({
       productId: 'prod-5',
       name: 'Papas Fritas',
@@ -376,7 +378,7 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
             </div>
           </div>
 
-          {!hasPapas && (
+          {isDemoMenu && !hasPapas && (
             <div className="bg-muted/50 border border-border p-4 rounded-xl flex items-center justify-between gap-4">
               <div>
                 <p className="font-semibold text-foreground text-sm">¿Agregamos papas fritas?</p>

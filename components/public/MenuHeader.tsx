@@ -1,5 +1,6 @@
 import type { Restaurant } from '@/lib/types/database'
 import Image from 'next/image'
+import Link from 'next/link'
 
 /** Imagen por defecto: hamburguesas y mesa — encaja con la marca */
 const DEFAULT_BANNER =
@@ -10,6 +11,14 @@ export default function MenuHeader({ restaurant }: { restaurant: Restaurant }) {
 
   return (
     <header className="relative z-0">
+      <div className="absolute left-3 top-3 z-20 sm:left-4 sm:top-4">
+        <Link
+          href="/"
+          className="inline-flex items-center rounded-full border border-white/25 bg-black/35 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-md hover:bg-black/45 focus-visible:outline focus-visible:ring-2 focus-visible:ring-white/60"
+        >
+          ← Inicio
+        </Link>
+      </div>
       <div className="relative h-[216px] w-full overflow-hidden sm:h-[292px] md:h-[328px] lg:rounded-b-[2rem] shadow-[0_20px_50px_-28px_rgba(45,35,30,0.45)]">
         <Image
           src={banner}

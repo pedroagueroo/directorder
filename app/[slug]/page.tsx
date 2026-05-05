@@ -6,6 +6,7 @@ import FeaturedProducts from '@/components/public/FeaturedProducts'
 import ProductList from '@/components/public/ProductList'
 import CartBar from '@/components/public/Cart'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { getMenuRestaurantIdFromRow } from '@/lib/server/branches'
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const supabase = createServerSupabase()
@@ -34,17 +35,19 @@ export default async function RestaurantPage({ params }: { params: { slug: strin
 
   if (!restaurant) notFound()
 
+  const menuRestaurantId = getMenuRestaurantIdFromRow(restaurant as { id: string; menu_source_restaurant_id?: string | null })
+
   const [{ data: categories }, { data: products }] = await Promise.all([
     supabase
       .from('categories')
       .select('*')
-      .eq('restaurant_id', restaurant.id)
+      .eq('restaurant_id', menuRestaurantId)
       .eq('is_active', true)
       .order('sort_order'),
     supabase
       .from('products')
       .select('*')
-      .eq('restaurant_id', restaurant.id)
+      .eq('restaurant_id', menuRestaurantId)
       .eq('is_available', true)
       .eq('is_active', true)
       .order('sort_order'),

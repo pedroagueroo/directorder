@@ -1,6 +1,7 @@
 'use client'
 import { DndContext, closestCorners, TouchSensor, MouseSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core'
 import type { Order } from '@/lib/types/database'
+import Link from 'next/link'
 import KDSColumn from './KDSColumn'
 
 const COLUMNS = [
@@ -17,6 +18,7 @@ export default function KDSBoard({
   retryInMs,
   lastUpdatedAt,
   onRetry,
+  backHref,
 }: {
   orders: Order[]
   onUpdateStatus: (id: string, st: Order['status']) => void
@@ -25,6 +27,8 @@ export default function KDSBoard({
   retryInMs: number
   lastUpdatedAt: Date | null
   onRetry: () => Promise<boolean>
+  /** Solo dueños: vuelve al Centro de Control. Personal de cocina no tiene otro panel. */
+  backHref: string | null
 }) {
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }), 
@@ -58,9 +62,17 @@ export default function KDSBoard({
     <div className="flex h-[100dvh] min-h-0 flex-col bg-background">
       <div className="px-4 pb-4 pt-[max(0.75rem,env(safe-area-inset-top,0px))] sm:p-6 bg-card border-b-2 border-border shadow-sm z-10 flex flex-wrap gap-3 justify-between items-center shrink-0">
         <div className="flex items-center gap-4">
-          <a href="/admin/dashboard" className="w-10 h-10 rounded-xl bg-muted hover:bg-muted-foreground/20 flex items-center justify-center transition-colors text-xl font-bold">
-            ←
-          </a>
+          {backHref ? (
+            <Link
+              href={backHref}
+              className="w-10 h-10 rounded-xl bg-muted hover:bg-muted-foreground/20 flex items-center justify-center transition-colors text-xl font-bold"
+              aria-label="Volver al Centro de Control"
+            >
+              ←
+            </Link>
+          ) : (
+            <span className="w-10 shrink-0" aria-hidden />
+          )}
           <h1 className="text-3xl sm:text-5xl font-black text-foreground tracking-tight">Cocina · KDS</h1>
         </div>
         <div className="flex items-center gap-2">

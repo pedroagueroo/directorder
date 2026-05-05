@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { listMyBranches, setActiveBranch } from '@/lib/actions/auth'
 
 type BranchOption = {
@@ -53,6 +54,11 @@ export default async function SelectBranchPage() {
             </form>
           ))}
         </div>
+        <p className="mt-10 text-center text-sm text-white/50">
+          <Link href="/" className="font-semibold text-white/70 hover:text-white underline-offset-4 hover:underline">
+            Volver al inicio
+          </Link>
+        </p>
       </div>
     </div>
   )

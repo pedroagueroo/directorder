@@ -6,10 +6,12 @@ export default function StaffClient({
   restaurantId,
   newOrderSoundEnabled,
   statusSoundEnabled,
+  backHref,
 }: {
   restaurantId: string
   newOrderSoundEnabled: boolean
   statusSoundEnabled: boolean
+  backHref: string | null
 }) {
   const { orders, loading, error, syncStatus, lastUpdatedAt, retryInMs, updateStatus, refetch } =
     useOrders(restaurantId, { newOrderSoundEnabled, statusSoundEnabled })
@@ -31,6 +33,7 @@ export default function StaffClient({
       retryInMs={retryInMs}
       lastUpdatedAt={lastUpdatedAt}
       onRetry={refetch}
+      backHref={backHref}
     />
   )
 }

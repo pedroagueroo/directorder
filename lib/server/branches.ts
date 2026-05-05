@@ -23,6 +23,16 @@ export async function getBranchesForUserId(supabase: Supabase, userId: string): 
   return row ? ([row] as Restaurant[]) : []
 }
 
+/** Misma regla que en admin: menú compartido vía `menu_source_restaurant_id`. */
+export function getMenuRestaurantIdFromRow(r: {
+  id: string
+  menu_source_restaurant_id?: string | null
+}): string {
+  const src = r.menu_source_restaurant_id ?? null
+  if (src && src !== r.id) return src
+  return r.id
+}
+
 /** restaurant_id del menú (fuente) para la sucursal activa. */
 export async function getMenuRestaurantIdForBranch(supabase: Supabase, branchId: string): Promise<string | null> {
   const { data: r } = await supabase
@@ -32,7 +42,5 @@ export async function getMenuRestaurantIdForBranch(supabase: Supabase, branchId:
     .single()
 
   if (!r) return null
-  const src = r.menu_source_restaurant_id as string | null | undefined
-  if (src && src !== r.id) return src
-  return r.id
+  return getMenuRestaurantIdFromRow(r as { id: string; menu_source_restaurant_id?: string | null })
 }

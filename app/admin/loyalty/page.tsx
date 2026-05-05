@@ -1,6 +1,13 @@
+import Link from 'next/link'
+
 export default function AdminLoyaltyPage() {
   return (
     <div className="p-8 sm:p-10 max-w-[1400px] mx-auto space-y-8 animate-in fade-in duration-500">
+      <div className="mb-4">
+        <Link href="/admin/dashboard" className="text-sm font-bold text-primary hover:underline">
+          ← Centro de Control
+        </Link>
+      </div>
       <div className="flex justify-between items-center mb-10">
         <div>
            <h1 className="text-4xl font-black tracking-tight mb-2">Fidelización</h1>

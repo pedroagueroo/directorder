@@ -34,6 +34,7 @@ export function useOrders(
       }
       if (!res.ok) throw new Error('Error de red al actualizar cocina')
       const data = await res.json()
+      if (!Array.isArray(data)) throw new Error('Respuesta inválida del servidor')
 
       const activeOrders = data.filter((o: any) =>
         ['pending', 'preparing', 'ready'].includes(o.status)
@@ -124,7 +125,15 @@ export function useOrders(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'updateStatus', orderId, status }),
       })
-      if (!res.ok) throw new Error('No se pudo actualizar el estado del pedido')
+      let payload: { error?: string } = {}
+      try {
+        payload = await res.json()
+      } catch {
+        /* cuerpo vacío o no JSON */
+      }
+      if (!res.ok) {
+        throw new Error(typeof payload.error === 'string' ? payload.error : 'No se pudo actualizar el estado del pedido')
+      }
       await fetchOrders()
     } catch (e) {
       setOrders(previous)
