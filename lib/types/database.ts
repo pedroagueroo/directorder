@@ -139,6 +139,18 @@ export type AnalyticsEvent = {
   created_at: string
 }
 
+export type AuditLog = {
+  id: string
+  created_at: string
+  actor_user_id: string | null
+  brand_id: string | null
+  restaurant_id: string | null
+  table_name: string
+  record_id: string | null
+  operation: string
+  changes: Record<string, any> | null
+}
+
 // Supabase v2.100+ requires Relationships, Views, Functions, Enums, CompositeTypes
 type TableDef<R, I = Partial<R>, U = Partial<R>> = {
   Row: R
@@ -199,6 +211,11 @@ export type Database = {
         { id: string; customer_id: string; restaurant_id: string; points: number; reason: string; created_at: string },
         { customer_id: string; restaurant_id: string; points: number; reason: string },
         { points?: number; reason?: string }
+      >
+      audit_logs: TableDef<
+        AuditLog,
+        Partial<AuditLog> & { table_name: string; operation: string },
+        Partial<AuditLog>
       >
     }
     Views: {
