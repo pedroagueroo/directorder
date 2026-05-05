@@ -14,11 +14,12 @@ function formatPrice(amount: number): string {
 
 export default function ProductList({
   products,
-  categories
+  categories,
+  restaurantSlug,
 }: {
   products: Product[]
   categories: any[]
-  restaurantId?: string
+  restaurantSlug: string
 }) {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
 
@@ -121,7 +122,11 @@ export default function ProductList({
       </section>
 
       {selectedProduct && (
-        <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />
+        <ProductModal
+          product={selectedProduct}
+          restaurantSlug={restaurantSlug}
+          onClose={() => setSelectedProduct(null)}
+        />
       )}
     </>
   )

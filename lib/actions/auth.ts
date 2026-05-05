@@ -5,7 +5,12 @@ import { createServerSupabase } from '@/lib/supabase/server'
 import { getBranchesForUserId } from '@/lib/server/branches'
 
 function setSessionCookies(role: string, userId: string, branchId: string) {
-  const opts = { httpOnly: true, secure: process.env.NODE_ENV === 'production', path: '/' } as const
+  const opts = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax' as const,
+    path: '/',
+  }
   cookies().set('auth-role', role, opts)
   cookies().set('auth-user-id', userId, opts)
   cookies().set('auth-restaurant-id', branchId, opts)

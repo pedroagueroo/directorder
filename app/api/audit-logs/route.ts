@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { createServerSupabase } from '@/lib/supabase/server'
+import { requireStaffApiAuth } from '@/lib/server/require-staff-api'
 
 function safeJson(val: unknown) {
   try {
@@ -40,18 +39,20 @@ export async function GET(req: Request) {
   const format = url.searchParams.get('format') ?? 'json' // json | md
   const limit = Number(url.searchParams.get('limit') ?? '200')
 
-  const userId = cookies().get('auth-user-id')?.value
-  if (!userId) {
-    return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
-  }
+  const auth = await requireStaffApiAuth()
+  if (!auth.ok) return auth.response
 
-  const supabase = createServerSupabase()
+  const { supabase, userId } = auth.auth
 
   const { data: user } = await supabase
     .from('users')
-    .select('brand_id')
+    .select('brand_id, role')
     .eq('id', userId)
     .single()
+
+  if (user?.role !== 'owner') {
+    return NextResponse.json({ error: 'Solo el dueño puede ver el historial de cambios.' }, { status: 403 })
+  }
 
   const brandId = user?.brand_id
   if (!brandId) {

@@ -68,9 +68,13 @@ export function useDashboardAnalytics(
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const fetchData = useCallback(async () => {
-    void restaurantId
     try {
-      const res = await fetchWithRetry('/api/orders', { credentials: 'include' }, { retries: 2 })
+      const q = encodeURIComponent(restaurantId)
+      const res = await fetchWithRetry(
+        `/api/orders?restaurantId=${q}`,
+        { credentials: 'include' },
+        { retries: 2 }
+      )
       if (res.status === 401) {
         setData(empty)
         setError('Sesion vencida')
@@ -78,8 +82,9 @@ export function useDashboardAnalytics(
         return false
       }
       if (!res.ok) throw new Error('No se pudo actualizar el panel')
-      const orders = await res.json()
-      if (!Array.isArray(orders)) throw new Error('Respuesta inválida del servidor')
+      const raw = await res.json()
+      if (!Array.isArray(raw)) throw new Error('Respuesta inválida del servidor')
+      const orders = raw.filter((o: any) => o.restaurant_id === restaurantId)
       const summary = summarizeDailySales(orders, DEFAULT_ANALYTICS_TIMEZONE)
       const pendingOrders = orders.filter((o: any) => o.status === 'pending').length
       const preparingOrders = orders.filter((o: any) => o.status === 'preparing').length

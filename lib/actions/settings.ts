@@ -42,6 +42,7 @@ export async function updateRestaurantSettingsAction(formData: FormData) {
     if (!name) return { error: 'El nombre del local es obligatorio.' }
     updates = { name, description: description || null, whatsapp: whatsapp || null, address: address || null }
   } else if (section === 'channels') {
+    const geocodeSuffix = String(formData.get('delivery_geocode_suffix') ?? '').trim()
     updates = {
       delivery_fee: Math.max(0, toNumber(formData.get('delivery_fee'), 0)),
       avg_prep_minutes: Math.max(1, Math.round(toNumber(formData.get('avg_prep_minutes'), 30))),
@@ -50,6 +51,7 @@ export async function updateRestaurantSettingsAction(formData: FormData) {
       table_mode_enabled: formData.has('table_mode_enabled'),
       kds_sound_new_order: formData.has('kds_sound_new_order'),
       kds_sound_status_change: formData.has('kds_sound_status_change'),
+      delivery_geocode_suffix: geocodeSuffix ? geocodeSuffix.slice(0, 200) : null,
     }
   } else if (section === 'visual') {
     updates = {
@@ -100,6 +102,7 @@ export async function updateRestaurantSettingsAction(formData: FormData) {
         table_mode_enabled: current?.table_mode_enabled ?? false,
         delivery_fee: current?.delivery_fee ?? 0,
         avg_prep_minutes: current?.avg_prep_minutes ?? 20,
+        delivery_geocode_suffix: (current as { delivery_geocode_suffix?: string | null })?.delivery_geocode_suffix ?? null,
         brand_id: user.brand_id,
         is_branch: true,
         menu_source_restaurant_id: null,
@@ -141,16 +144,14 @@ export async function updateRestaurantSettingsAction(formData: FormData) {
     }
 
     if (branchId === restaurantId) {
-      cookies().set('auth-active-branch-id', fallback, {
+      const cOpts = {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax' as const,
         path: '/',
-      })
-      cookies().set('auth-restaurant-id', fallback, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        path: '/',
-      })
+      }
+      cookies().set('auth-active-branch-id', fallback, cOpts)
+      cookies().set('auth-restaurant-id', fallback, cOpts)
     }
 
     revalidatePath('/admin/settings')

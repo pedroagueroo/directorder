@@ -12,8 +12,13 @@ export type CartItem = {
 
 type CartStore = {
   items: CartItem[]
+  /** Sucursal (slug público) a la que pertenece el carrito; evita mezclar pedidos entre locales. */
   restaurantSlug: string | null
-  addItem: (item: Omit<CartItem, 'quantity' | 'cartItemId'> & { quantity?: number, cartItemId?: string }) => void
+  switchRestaurant: (slug: string) => void
+  addItem: (
+    item: Omit<CartItem, 'quantity' | 'cartItemId'> & { quantity?: number; cartItemId?: string },
+    restaurantSlug: string
+  ) => void
   removeItem: (cartItemId: string) => void
   updateQuantity: (cartItemId: string, qty: number) => void
   clearCart: () => void
@@ -27,39 +32,60 @@ export const useCartStore = create<CartStore>()(
       items: [],
       restaurantSlug: null,
 
-      addItem: (item) => set((state) => {
-        // If they pass a cartItemId, it means they are adding an identical configured item
-        // or we check if there's an item with EXACTLY the same productId and notes
-        const existingIndex = state.items.findIndex(i => 
-          i.productId === item.productId && i.notes === item.notes
-        )
+      switchRestaurant: (slug) =>
+        set((state) => {
+          if (state.restaurantSlug === slug) return state
+          return { items: [], restaurantSlug: slug }
+        }),
 
-        if (existingIndex >= 0) {
-          const newItems = [...state.items]
-          newItems[existingIndex].quantity += (item.quantity || 1)
-          return { items: newItems }
-        }
+      addItem: (item, restaurantSlug) =>
+        set((state) => {
+          let items = state.items
+          let activeSlug = state.restaurantSlug
 
-        const cartItemId = item.cartItemId || `${item.productId}-${Date.now()}`
-        return { items: [...state.items, { ...item, quantity: item.quantity || 1, cartItemId }] }
-      }),
+          if (activeSlug !== null && activeSlug !== restaurantSlug) {
+            items = []
+          }
+          activeSlug = restaurantSlug
 
-      removeItem: (cartItemId) => set((state) => ({
-        items: state.items.filter(i => i.cartItemId !== cartItemId)
-      })),
+          const existingIndex = items.findIndex(
+            (i) => i.productId === item.productId && i.notes === item.notes
+          )
 
-      updateQuantity: (cartItemId, qty) => set((state) => ({
-        items: qty <= 0
-          ? state.items.filter(i => i.cartItemId !== cartItemId)
-          : state.items.map(i => i.cartItemId === cartItemId ? { ...i, quantity: qty } : i)
-      })),
+          if (existingIndex >= 0) {
+            const newItems = [...items]
+            newItems[existingIndex].quantity += item.quantity || 1
+            return { items: newItems, restaurantSlug: activeSlug }
+          }
 
-      clearCart: () => set({ items: [] }),
+          const cartItemId = item.cartItemId || `${item.productId}-${Date.now()}`
+          return {
+            items: [...items, { ...item, quantity: item.quantity || 1, cartItemId }],
+            restaurantSlug: activeSlug,
+          }
+        }),
+
+      removeItem: (cartItemId) =>
+        set((state) => ({
+          items: state.items.filter((i) => i.cartItemId !== cartItemId),
+        })),
+
+      updateQuantity: (cartItemId, qty) =>
+        set((state) => ({
+          items:
+            qty <= 0
+              ? state.items.filter((i) => i.cartItemId !== cartItemId)
+              : state.items.map((i) =>
+                  i.cartItemId === cartItemId ? { ...i, quantity: qty } : i
+                ),
+        })),
+
+      clearCart: () => set({ items: [], restaurantSlug: null }),
 
       total: () => get().items.reduce((sum, i) => sum + i.price * i.quantity, 0),
 
       itemCount: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
     }),
-    { name: 'directorder-cart' }
+    { name: 'directorder-cart-v2' }
   )
 )

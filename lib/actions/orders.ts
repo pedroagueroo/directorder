@@ -1,6 +1,7 @@
 'use server'
 import type { CartItem } from '@/store/cart'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { getMenuRestaurantIdFromRow } from '@/lib/server/branches'
 
 type CreateOrderInput = {
   restaurantId: string
@@ -29,12 +30,22 @@ export async function createOrder(input: CreateOrderInput) {
   if (!restaurant.is_open) throw new Error('El local está cerrado en este momento.')
   if (!input.items.length) throw new Error('El pedido no puede estar vacío.')
 
+  const menuRestaurantId = getMenuRestaurantIdFromRow(
+    restaurant as { id: string; menu_source_restaurant_id?: string | null }
+  )
+
+  if (input.orderType === 'table') {
+    const tableRef = (input.tableId ?? '').trim()
+    if (!tableRef) throw new Error('Indicá el número o nombre de tu mesa.')
+    if (tableRef.length > 80) throw new Error('El dato de mesa es demasiado largo.')
+  }
+
   // Validate products against DB prices
   const productIds = input.items.map(i => i.productId)
   const { data: products } = await supabase
     .from('products')
     .select('*')
-    .eq('restaurant_id', input.restaurantId)
+    .eq('restaurant_id', menuRestaurantId)
     .in('id', productIds)
 
   const productMap = new Map((products ?? []).map(p => [p.id, p]))

@@ -22,6 +22,8 @@ export type Restaurant = {
   min_order_amount: number
   delivery_fee: number
   avg_prep_minutes: number
+  /** Sufijo para geocodificar delivery (ej. "Mar del Plata, Buenos Aires, Argentina"). Vacío/null = solo formato, sin mapa. */
+  delivery_geocode_suffix?: string | null
   is_open: boolean
   kds_sound_new_order?: boolean
   kds_sound_status_change?: boolean

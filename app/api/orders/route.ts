@@ -1,17 +1,20 @@
 import { NextResponse } from 'next/server'
-import { createServerSupabase } from '@/lib/supabase/server'
-import { getAuthRestaurantId } from '@/lib/server/auth-restaurant'
+import { requireStaffApiAuth } from '@/lib/server/require-staff-api'
 import { assertValidStatusTransition } from '@/lib/orders/status'
 import type { Order } from '@/lib/types/database'
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const restaurantId = getAuthRestaurantId()
-    if (!restaurantId) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    const auth = await requireStaffApiAuth()
+    if (!auth.ok) return auth.response
+
+    const { supabase, restaurantId } = auth.auth
+    const url = new URL(req.url)
+    const qId = url.searchParams.get('restaurantId')
+    if (qId && qId !== restaurantId) {
+      return NextResponse.json({ error: 'Sucursal no coincide con la sesión' }, { status: 403 })
     }
 
-    const supabase = createServerSupabase()
     const { data: orders } = await supabase
       .from('orders')
       .select('*, order_items(*)')
@@ -25,10 +28,10 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const restaurantId = getAuthRestaurantId()
-  if (!restaurantId) {
-    return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
-  }
+  const auth = await requireStaffApiAuth()
+  if (!auth.ok) return auth.response
+
+  const { supabase, restaurantId } = auth.auth
 
   let body: { action?: string; orderId?: string; status?: Order['status'] }
   try {
@@ -36,8 +39,6 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ error: 'JSON inválido' }, { status: 400 })
   }
-
-  const supabase = createServerSupabase()
 
   try {
     if (body.action === 'updateStatus' && body.orderId && body.status) {

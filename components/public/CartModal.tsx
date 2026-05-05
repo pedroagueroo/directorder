@@ -4,8 +4,9 @@ import type { Restaurant } from '@/lib/types/database'
 import { useRef, useState } from 'react'
 import { generateWhatsAppMessage, getWhatsAppUrl } from '@/lib/utils/whatsapp'
 import { createOrder } from '@/lib/actions/orders'
-import { validateMarDelPlataAddress } from '@/lib/actions/validateAddress'
+import { validateDeliveryAddress } from '@/lib/actions/validateAddress'
 import { validateAddressFormat } from '@/lib/utils/address'
+import { deliveryGeocodeHint, resolveDeliveryGeocodeSuffix } from '@/lib/utils/delivery-geocode'
 import toast from 'react-hot-toast'
 
 export default function CartModal({ restaurant, onClose }: { restaurant: Restaurant; onClose: () => void }) {
@@ -19,12 +20,18 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [nameError, setNameError] = useState('')
   const [addressError, setAddressError] = useState('')
+  const [tableNumber, setTableNumber] = useState('')
+  const [tableError, setTableError] = useState('')
   const nameInputRef = useRef<HTMLInputElement>(null)
   const addressInputRef = useRef<HTMLInputElement>(null)
+  const tableInputRef = useRef<HTMLInputElement>(null)
+  const geocodeSuffix = resolveDeliveryGeocodeSuffix(restaurant)
+  const addressHint = deliveryGeocodeHint(restaurant)
 
   const handleCheckout = async () => {
     setNameError('')
     setAddressError('')
+    setTableError('')
 
     if (cart.items.length === 0) return
     if (!restaurant.is_open) {
@@ -49,6 +56,22 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
       }
     }
 
+    if (type === 'table') {
+      const t = tableNumber.trim()
+      if (!t) {
+        setTableError('Indicá tu número o nombre de mesa.')
+        tableInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        tableInputRef.current?.focus()
+        return
+      }
+      if (t.length > 80) {
+        setTableError('Usá como máximo 80 caracteres.')
+        tableInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        tableInputRef.current?.focus()
+        return
+      }
+    }
+
     if (!hasWhatsAppConfigured) {
       toast.error('Este local no tiene WhatsApp configurado.')
       return
@@ -57,7 +80,7 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
     setIsSubmitting(true)
     try {
       if (type === 'delivery') {
-        const geo = await validateMarDelPlataAddress(address)
+        const geo = await validateDeliveryAddress(address, geocodeSuffix)
         if (!geo.ok) {
           setAddressError(geo.message)
           addressInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -68,6 +91,7 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
 
       const deliveryAddress = type === 'delivery' ? address.trim() : undefined
       const orderNotes = type === 'delivery' && notes.trim() ? notes.trim() : undefined
+      const tableIdForOrder = type === 'table' ? tableNumber.trim() : undefined
       const deliveryFee =
         type === 'delivery' && restaurant.delivery_enabled !== false
           ? Number((restaurant as { delivery_fee?: number }).delivery_fee) || 0
@@ -79,6 +103,7 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
         customerName: name,
         orderType: type,
         deliveryAddress,
+        tableId: tableIdForOrder,
         items: cart.items,
         notes: orderNotes,
         paymentMethod,
@@ -95,6 +120,7 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
         customerName: name,
         orderType: type,
         address: deliveryAddress,
+        tableNumber: type === 'table' ? tableNumber.trim() : undefined,
         notes: orderNotes,
         deliveryFee: deliveryFee > 0 ? deliveryFee : undefined,
         paymentMethod,
@@ -116,17 +142,24 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
   const hasPapas = isDemoMenu && cart.items.some((i) => i.productId === 'prod-5')
   const handleUpsell = () => {
     if (!isDemoMenu) return
-    cart.addItem({
-      productId: 'prod-5',
-      name: 'Papas Fritas',
-      price: 2200,
-      quantity: 1,
-    })
+    cart.addItem(
+      {
+        productId: 'prod-5',
+        name: 'Papas Fritas',
+        price: 2200,
+        quantity: 1,
+      },
+      restaurant.slug
+    )
   }
 
   const isDelivery = type === 'delivery'
   const submitBusyLabel =
-    isDelivery && isSubmitting ? 'Verificando dirección…' : isSubmitting ? 'Enviando…' : null
+    isDelivery && isSubmitting && geocodeSuffix
+      ? 'Verificando dirección…'
+      : isSubmitting
+        ? 'Enviando…'
+        : null
   const hasWhatsAppConfigured = !!restaurant.whatsapp?.replace(/\D/g, '')
   const subtotal = cart.total()
   const deliveryFeeEstimate =
@@ -229,6 +262,7 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
                 onClick={() => {
                   setType('delivery')
                   setAddressError('')
+                  setTableError('')
                 }}
                 className={`min-h-11 touch-manipulation py-2.5 rounded-lg text-sm font-medium transition-colors active:scale-[0.98] ${
                   type === 'delivery' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
@@ -241,6 +275,7 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
                 onClick={() => {
                   setType('pickup')
                   setAddressError('')
+                  setTableError('')
                 }}
                 className={`min-h-11 touch-manipulation py-2.5 rounded-lg text-sm font-medium transition-colors active:scale-[0.98] ${
                   type === 'pickup' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
@@ -254,6 +289,7 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
                   onClick={() => {
                     setType('table')
                     setAddressError('')
+                    setTableError('')
                   }}
                   className={`min-h-11 touch-manipulation py-2.5 rounded-lg text-sm font-medium transition-colors active:scale-[0.98] ${
                     type === 'table' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
@@ -327,11 +363,45 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
                 )}
               </div>
 
+              {type === 'table' && (
+                <div>
+                  <label htmlFor="checkout-table" className="block text-xs font-semibold text-muted-foreground mb-1.5">
+                    Número o nombre de mesa
+                  </label>
+                  <input
+                    ref={tableInputRef}
+                    id="checkout-table"
+                    value={tableNumber}
+                    onChange={(e) => {
+                      setTableNumber(e.target.value)
+                      if (tableError) setTableError('')
+                    }}
+                    type="text"
+                    inputMode="text"
+                    autoComplete="off"
+                    className={`w-full p-3.5 rounded-xl border bg-background focus:ring-2 focus:ring-ring/30 outline-none text-sm placeholder:text-muted-foreground transition-all ${
+                      tableError ? 'border-red-500/80 ring-1 ring-red-500/20' : 'border-border'
+                    }`}
+                    placeholder="Ej. 12, barra, terraza norte…"
+                    aria-invalid={!!tableError}
+                    aria-describedby={tableError ? 'checkout-table-error' : 'checkout-table-hint'}
+                  />
+                  <p id="checkout-table-hint" className="mt-1.5 text-[11px] text-muted-foreground leading-snug">
+                    Así la cocina asocia tu pedido con el lugar donde estás sentado.
+                  </p>
+                  {tableError && (
+                    <p id="checkout-table-error" className="mt-1.5 text-sm text-red-600 dark:text-red-400">
+                      {tableError}
+                    </p>
+                  )}
+                </div>
+              )}
+
               {isDelivery && (
                 <>
                   <div>
                     <label htmlFor="checkout-address" className="sr-only">
-                      Dirección en Mar del Plata
+                      Dirección de entrega
                     </label>
                     <input
                       ref={addressInputRef}
@@ -351,7 +421,7 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
                       aria-describedby={addressError ? 'checkout-address-error' : 'checkout-address-hint'}
                     />
                     <p id="checkout-address-hint" className="mt-1.5 text-[11px] text-muted-foreground leading-snug">
-                      Calle y número obligatorios. Comprobamos la ubicación en Mar del Plata (OpenStreetMap).
+                      {addressHint}
                     </p>
                     {addressError && (
                       <p id="checkout-address-error" className="mt-1.5 text-sm text-red-600 dark:text-red-400">
@@ -439,8 +509,12 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
             {!hasWhatsAppConfigured
               ? 'Falta configurar el número de WhatsApp del local para poder enviar pedidos.'
               : isDelivery
-                ? 'Se registra el pedido y se abre WhatsApp con el detalle. La dirección se valida con mapa abierto.'
-                : 'Se registra el pedido y se abre WhatsApp para que lo envíes al local.'}
+                ? geocodeSuffix
+                  ? 'Se registra el pedido y se abre WhatsApp. La dirección se verifica con mapa abierto según la zona del local.'
+                  : 'Se registra el pedido y se abre WhatsApp. El local valida la dirección al preparar el envío.'
+                : type === 'table'
+                  ? 'Se registra el pedido con tu mesa y se abre WhatsApp para enviar el detalle al local.'
+                  : 'Se registra el pedido y se abre WhatsApp para que lo envíes al local.'}
           </p>
         </div>
       </div>

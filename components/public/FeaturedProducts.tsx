@@ -7,7 +7,13 @@ import ProductModal from './ProductModal'
 const CARD_WIDTH = 272
 const GAP = 16
 
-export default function FeaturedProducts({ products }: { products: Product[] }) {
+export default function FeaturedProducts({
+  products,
+  restaurantSlug,
+}: {
+  products: Product[]
+  restaurantSlug: string
+}) {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const scrollerRef = useRef<HTMLDivElement>(null)
   const [canPrev, setCanPrev] = useState(false)
@@ -154,7 +160,11 @@ export default function FeaturedProducts({ products }: { products: Product[] }) 
       </section>
 
       {selectedProduct && (
-        <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />
+        <ProductModal
+          product={selectedProduct}
+          restaurantSlug={restaurantSlug}
+          onClose={() => setSelectedProduct(null)}
+        />
       )}
     </>
   )

@@ -2,6 +2,9 @@
 
 # dependencies
 /node_modules
+
+# Copia local anidada / artefactos (no versionar)
+/directorder/
 /.pnp
 .pnp.js
 .yarn/install-state.gz

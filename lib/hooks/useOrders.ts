@@ -23,9 +23,13 @@ export function useOrders(
   const maxInterval = 20000
 
   const fetchOrders = useCallback(async () => {
-    void restaurantId
     try {
-      const res = await fetchWithRetry('/api/orders', { credentials: 'include' }, { retries: 2 })
+      const q = encodeURIComponent(restaurantId)
+      const res = await fetchWithRetry(
+        `/api/orders?restaurantId=${q}`,
+        { credentials: 'include' },
+        { retries: 2 }
+      )
       if (res.status === 401) {
         setOrders([])
         setError('Sesion vencida')
@@ -36,7 +40,8 @@ export function useOrders(
       const data = await res.json()
       if (!Array.isArray(data)) throw new Error('Respuesta inválida del servidor')
 
-      const activeOrders = data.filter((o: any) =>
+      const scoped = data.filter((o: any) => o.restaurant_id === restaurantId)
+      const activeOrders = scoped.filter((o: any) =>
         ['pending', 'preparing', 'ready'].includes(o.status)
       )
 

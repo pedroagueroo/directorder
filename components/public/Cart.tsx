@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useLayoutEffect, useState } from 'react'
 import { useCartStore } from '@/store/cart'
 import type { Restaurant } from '@/lib/types/database'
 import CartModal from './CartModal'
@@ -8,7 +8,11 @@ export default function CartBar({ restaurant }: { restaurant: Restaurant }) {
   const [isOpen, setIsOpen] = useState(false)
   const cart = useCartStore()
 
-  if (cart.items.length === 0) return null
+  useLayoutEffect(() => {
+    useCartStore.getState().switchRestaurant(restaurant.slug)
+  }, [restaurant.slug])
+
+  if (cart.items.length === 0 || cart.restaurantSlug !== restaurant.slug) return null
 
   return (
     <>

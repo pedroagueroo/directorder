@@ -57,8 +57,11 @@ export default async function RestaurantPage({ params }: { params: { slug: strin
     <main className="min-h-screen min-h-[100dvh] bg-background bg-dots-pattern pb-[calc(7rem+env(safe-area-inset-bottom,0px))] sm:pb-[calc(8rem+env(safe-area-inset-bottom,0px))]">
       <MenuHeader restaurant={restaurant as any} />
       <CategoryFilter categories={categories ?? []} />
-      <FeaturedProducts products={(products ?? []).filter((p: any) => p.is_featured)} />
-      <ProductList products={products ?? []} categories={categories ?? []} restaurantId={restaurant.id} />
+      <FeaturedProducts
+        products={(products ?? []).filter((p: any) => p.is_featured)}
+        restaurantSlug={restaurant.slug}
+      />
+      <ProductList products={products ?? []} categories={categories ?? []} restaurantSlug={restaurant.slug} />
       <CartBar restaurant={restaurant as any} />
     </main>
   )

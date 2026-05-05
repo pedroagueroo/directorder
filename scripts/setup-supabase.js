@@ -33,6 +33,7 @@ CREATE TABLE public.restaurants (
   min_order_amount numeric(10,2) DEFAULT 0,
   delivery_fee numeric(10,2) DEFAULT 0,
   avg_prep_minutes int DEFAULT 20,
+  delivery_geocode_suffix text,
   is_open boolean DEFAULT true,
   kds_sound_new_order boolean DEFAULT true,
   kds_sound_status_change boolean DEFAULT true,

@@ -23,6 +23,12 @@ export async function getBranchesForUserId(supabase: Supabase, userId: string): 
   return row ? ([row] as Restaurant[]) : []
 }
 
+/** Comprueba que la sucursal pertenezca a la cuenta del usuario (marca o legacy una sucursal). */
+export async function userCanAccessBranch(supabase: Supabase, userId: string, branchId: string): Promise<boolean> {
+  const branches = await getBranchesForUserId(supabase, userId)
+  return branches.some((b) => b.id === branchId)
+}
+
 /** Misma regla que en admin: menú compartido vía `menu_source_restaurant_id`. */
 export function getMenuRestaurantIdFromRow(r: {
   id: string

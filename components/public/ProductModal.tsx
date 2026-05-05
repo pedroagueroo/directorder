@@ -4,7 +4,15 @@ import { useState } from 'react'
 import { useCartStore } from '@/store/cart'
 import Image from 'next/image'
 
-export default function ProductModal({ product, onClose }: { product: Product; onClose: () => void }) {
+export default function ProductModal({
+  product,
+  restaurantSlug,
+  onClose,
+}: {
+  product: Product
+  restaurantSlug: string
+  onClose: () => void
+}) {
   const cart = useCartStore()
   const [quantity, setQuantity] = useState(1)
 
@@ -34,13 +42,16 @@ export default function ProductModal({ product, onClose }: { product: Product; o
       finalNotes = finalNotes ? `${finalNotes} | ${extraNotes}` : extraNotes
     }
 
-    cart.addItem({
-      productId: product.id,
-      name: product.name,
-      price: product.price,
-      quantity,
-      notes: finalNotes || undefined
-    })
+    cart.addItem(
+      {
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        quantity,
+        notes: finalNotes || undefined,
+      },
+      restaurantSlug
+    )
 
     onClose()
   }

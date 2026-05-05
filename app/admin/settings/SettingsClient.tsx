@@ -203,6 +203,25 @@ export default function SettingsClient({
               disabled={editableSection !== 'channels'}
             />
           </div>
+
+          <label className="block space-y-2">
+            <span className="text-sm font-semibold text-foreground/80">
+              Zona para verificar direcciones de delivery (opcional)
+            </span>
+            <input
+              name="delivery_geocode_suffix"
+              type="text"
+              defaultValue={restaurant.delivery_geocode_suffix ?? ''}
+              disabled={editableSection !== 'channels'}
+              placeholder="Ej: Mar del Plata, Buenos Aires, Argentina"
+              className="w-full rounded-2xl border border-border/80 bg-background/70 px-4 py-3 text-sm disabled:opacity-60"
+            />
+            <span className="text-xs text-muted-foreground leading-snug block">
+              Si lo dejás vacío, solo pedimos calle y número (sin consultar mapas). Si completás una zona, validamos que
+              la dirección exista ahí (OpenStreetMap). Útil para un solo radio de entrega; para otra ciudad escribí la
+              zona completa.
+            </span>
+          </label>
             {editableSection === 'channels' && (
               <SectionSaveButton pending={isPending} />
             )}
