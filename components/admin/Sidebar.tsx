@@ -9,8 +9,6 @@ import {
   LogOut,
   User,
   Store,
-  Users,
-  Heart,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { logout } from '@/lib/actions/auth'
@@ -43,20 +41,6 @@ export default function Sidebar({ hasMultipleBranches }: { hasMultipleBranches: 
          <SidebarLink href="/admin/dashboard" icon={<LayoutDashboard size={20}/>} label="Centro de Control" active={pathname === '/admin/dashboard'} />
          <SidebarLink href="/admin/menu" icon={<UtensilsCrossed size={20}/>} label="Menú" active={pathname === '/admin/menu'} />
          <SidebarLink href="/staff" icon={<ShoppingBag size={20}/>} label="Cocina (KDS)" active={pathname === '/staff'} />
-         <SidebarLink
-           href="/admin/customers"
-           icon={<Users size={20} />}
-           label="Clientes"
-           badge="Próximamente"
-           active={pathname === '/admin/customers'}
-         />
-         <SidebarLink
-           href="/admin/loyalty"
-           icon={<Heart size={20} />}
-           label="Fidelización"
-           badge="Próximamente"
-           active={pathname === '/admin/loyalty'}
-         />
          <SidebarLink href="/admin/settings" icon={<Settings size={20}/>} label="Configuración" active={pathname === '/admin/settings'} />
       </nav>
       

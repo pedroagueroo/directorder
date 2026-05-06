@@ -20,6 +20,8 @@ export default function RegisterAccountForm({
   showLoginLink = true,
 }: Props) {
   const honeypotId = useId()
+  /** Honeypot solo en estado React: si leemos el DOM, autofill/extensiones pueden llenar el input oculto y el servidor lo rechaza. */
+  const [honeypot, setHoneypot] = useState('')
   const [restaurantName, setRestaurantName] = useState('')
   const [ownerName, setOwnerName] = useState('')
   const [whatsapp, setWhatsapp] = useState('')
@@ -56,9 +58,7 @@ export default function RegisterAccountForm({
       formData.append('password', password)
       formData.append('confirm_password', confirmPassword)
       formData.append('terms', terms ? 'on' : 'off')
-      const formEl = e.target as HTMLFormElement
-      const hp = formEl.querySelector<HTMLInputElement>('input[name="_company_website"]')
-      formData.append('_company_website', hp?.value ?? '')
+      formData.append('_company_website', honeypot)
 
       const res = await register(formData)
       if (!res || typeof res !== 'object') {
@@ -95,7 +95,18 @@ export default function RegisterAccountForm({
     <form onSubmit={handleSubmit} className="relative space-y-5 text-left">
       <div className="absolute left-[-9999px] top-0 h-px w-px overflow-hidden opacity-0" aria-hidden="true">
         <label htmlFor={honeypotId}>No completar</label>
-        <input type="text" id={honeypotId} name="_company_website" tabIndex={-1} autoComplete="off" />
+        <input
+          type="text"
+          id={honeypotId}
+          name="_company_website"
+          tabIndex={-1}
+          autoComplete="off"
+          value={honeypot}
+          onChange={(e) => setHoneypot(e.target.value)}
+          data-lpignore="true"
+          data-1p-ignore
+          data-bwignore
+        />
       </div>
 
       <div>

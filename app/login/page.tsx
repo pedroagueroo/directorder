@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { login } from '@/lib/actions/auth'
 import Link from 'next/link'
@@ -14,9 +14,13 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [mode, setMode] = useState<'login' | 'register'>(initialMode)
   const isLogin = mode === 'login'
+  const loginBusyRef = useRef(false)
+  const loginFailedMsg = 'El usuario no existe o la contraseña es incorrecta.'
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (loginBusyRef.current) return
+    loginBusyRef.current = true
     setLoading(true)
     setError('')
 
@@ -28,14 +32,22 @@ export default function LoginPage() {
 
       const res = await login(formData)
       if (!res || typeof res !== 'object') {
-        setError('Respuesta inválida del servidor. Refrescá la página e intentá de nuevo.')
+        setError(loginFailedMsg)
         return
       }
+
       const errMsg = 'error' in res ? res.error : undefined
       if (errMsg != null && String(errMsg).trim() !== '') {
         setError(String(errMsg))
         return
       }
+
+      const success = 'success' in res && (res as { success?: boolean }).success === true
+      if (!success) {
+        setError(loginFailedMsg)
+        return
+      }
+
       const roleRaw = 'role' in res ? String(res.role) : 'owner'
       const needsBranchSelection =
         'needsBranchSelection' in res && Boolean((res as { needsBranchSelection?: boolean }).needsBranchSelection)
@@ -46,14 +58,10 @@ export default function LoginPage() {
           : '/staff'
       navigatedAway = true
       window.location.assign(dest)
-    } catch (e) {
-      const detail = e instanceof Error ? e.message : ''
-      setError(
-        detail
-          ? `Error de conexión: ${detail}`
-          : 'No se pudo iniciar sesión (red o servidor). Probá de nuevo.'
-      )
+    } catch {
+      setError(loginFailedMsg)
     } finally {
+      loginBusyRef.current = false
       if (!navigatedAway) {
         setLoading(false)
       }

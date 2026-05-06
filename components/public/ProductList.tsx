@@ -123,6 +123,7 @@ export default function ProductList({
 
       {selectedProduct && (
         <ProductModal
+          key={selectedProduct.id}
           product={selectedProduct}
           restaurantSlug={restaurantSlug}
           onClose={() => setSelectedProduct(null)}

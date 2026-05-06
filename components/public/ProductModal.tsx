@@ -1,8 +1,29 @@
 'use client'
 import type { Product } from '@/lib/types/database'
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useCartStore } from '@/store/cart'
 import Image from 'next/image'
+
+/** Supabase devuelve text[] como array; por si acaso normalizamos string/JSON. */
+function parseIngredientsList(raw: Product['ingredients']): string[] {
+  if (!raw) return []
+  if (Array.isArray(raw)) {
+    return raw.map((x) => String(x).trim()).filter(Boolean)
+  }
+  if (typeof raw === 'string') {
+    const s = raw.trim()
+    if (s.startsWith('[')) {
+      try {
+        const p = JSON.parse(s) as unknown
+        if (Array.isArray(p)) return p.map((x) => String(x).trim()).filter(Boolean)
+      } catch {
+        /* seguir */
+      }
+    }
+    return s.split(',').map((x) => x.trim()).filter(Boolean)
+  }
+  return []
+}
 
 export default function ProductModal({
   product,
@@ -16,26 +37,37 @@ export default function ProductModal({
   const cart = useCartStore()
   const [quantity, setQuantity] = useState(1)
 
-  const [ingredients, setIngredients] = useState<Record<string, boolean>>(() => {
-    const state: Record<string, boolean> = {}
-    if (product.ingredients) {
-      product.ingredients.forEach((ing) => {
-        state[ing] = true
-      })
-    }
-    return state
-  })
+  const ingredientsRawKey = JSON.stringify(product.ingredients ?? null)
+  const ingredientList = useMemo(
+    () => parseIngredientsList(product.ingredients),
+    [product.id, ingredientsRawKey]
+  )
+
+  const [ingredients, setIngredients] = useState<Record<string, boolean>>({})
 
   const [extraNotes, setExtraNotes] = useState('')
 
+  useEffect(() => {
+    const state: Record<string, boolean> = {}
+    ingredientList.forEach((ing) => {
+      state[ing] = true
+    })
+    setIngredients(state)
+    setQuantity(1)
+    setExtraNotes('')
+  }, [product.id, ingredientsRawKey])
+
   const handleToggle = (ing: string) => {
-    setIngredients((prev) => ({ ...prev, [ing]: !prev[ing] }))
+    setIngredients((prev) => {
+      const current = prev[ing] !== false
+      return { ...prev, [ing]: !current }
+    })
   }
 
   const handleAddToCart = () => {
-    const removedIngredients = Object.entries(ingredients)
-      .filter(([_, checked]) => !checked)
-      .map(([name]) => `Sin ${name}`)
+    const removedIngredients = ingredientList
+      .filter((name) => ingredients[name] === false)
+      .map((name) => `Sin ${name}`)
 
     let finalNotes = removedIngredients.join(', ')
     if (extraNotes.trim()) {
@@ -109,26 +141,34 @@ export default function ProductModal({
             <p className="text-muted-foreground text-sm leading-relaxed mb-4">{product.description}</p>
           )}
 
-          {product.ingredients && product.ingredients.length > 0 && (
+          {ingredientList.length > 0 && (
             <div className="mt-5 space-y-3">
               <h3 className="text-sm font-semibold text-foreground border-b border-border pb-2">
                 Personalizá el pedido (desmarcá lo que no quieras)
               </h3>
               <div className="grid grid-cols-1 gap-2">
-                {product.ingredients.map((ing) => (
+                {ingredientList.map((ing) => {
+                  const included = ingredients[ing] !== false
+                  return (
                   <label
                     key={ing}
                     className="flex min-h-11 items-center justify-between gap-3 p-3 rounded-xl border border-border bg-background cursor-pointer hover:bg-muted/40 transition-colors touch-manipulation"
                   >
-                    <span className={`text-sm font-medium ${!ingredients[ing] ? 'line-through text-muted-foreground' : ''}`}>
+                    <span className={`text-sm font-medium ${!included ? 'line-through text-muted-foreground' : ''}`}>
                       {ing}
                     </span>
                     <div className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" className="sr-only peer" checked={ingredients[ing]} onChange={() => handleToggle(ing)} />
-                      <div className="w-10 h-5 bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-card after:border after:border-border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary" />
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={included}
+                        onChange={() => handleToggle(ing)}
+                      />
+                      <div className="w-10 h-5 bg-muted rounded-full peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-card after:border after:border-border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary" />
                     </div>
                   </label>
-                ))}
+                  )
+                })}
               </div>
             </div>
           )}

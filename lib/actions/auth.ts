@@ -7,6 +7,9 @@ import { getBranchesForUserId } from '@/lib/server/branches'
 /** 7 días — sesión de panel; se renueva al iniciar sesión o cambiar sucursal. */
 const SESSION_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 
+/** Un solo mensaje para credenciales inválidas y fallos técnicos (sin filtrar detalles al cliente). */
+const LOGIN_FAILED_USER_MESSAGE = 'El usuario no existe o la contraseña es incorrecta.'
+
 function setSessionCookies(role: string, userId: string, branchId: string) {
   const opts = {
     httpOnly: true,
@@ -27,6 +30,13 @@ export async function login(formData: FormData) {
 
   if (!email || !password) return { error: 'Email y contraseña requeridos' }
 
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()) {
+    console.error(
+      '[login] Faltan NEXT_PUBLIC_SUPABASE_URL o NEXT_PUBLIC_SUPABASE_ANON_KEY (revisá .env.local y reiniciá el servidor).'
+    )
+    return { error: LOGIN_FAILED_USER_MESSAGE }
+  }
+
   try {
     cookies().delete('auth-role')
     cookies().delete('auth-user-id')
@@ -40,8 +50,8 @@ export async function login(formData: FormData) {
       password,
     })
 
-    if (authError || !authData.user) {
-      return { error: 'Email o contraseña incorrectos.' }
+    if (authError || !authData?.user) {
+      return { error: LOGIN_FAILED_USER_MESSAGE }
     }
 
     const { data: user } = await supabase.from('users').select('*').eq('id', authData.user.id).single()
@@ -65,9 +75,8 @@ export async function login(formData: FormData) {
 
     return { success: true, role, needsBranchSelection: branches.length > 1 }
   } catch (e) {
-    const msg = e instanceof Error ? e.message : 'Error interno'
-    console.error('[login]', msg)
-    return { error: `No se pudo iniciar sesión (${msg}). Probá de nuevo.` }
+    console.error('[login]', e)
+    return { error: LOGIN_FAILED_USER_MESSAGE }
   }
 }
 

@@ -10,7 +10,9 @@
     "build": "next build",
     "build:clean": "npm run clean && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "seed:demo": "node scripts/seed-supabase.js",
+    "seed:demo-user": "node scripts/create-demo-owner.js"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
