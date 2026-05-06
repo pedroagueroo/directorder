@@ -45,6 +45,7 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
   }, [restaurant])
 
   const handleCheckout = async () => {
+    if (isSubmitting) return
     setNameError('')
     setAddressError('')
     setTableError('')
@@ -168,20 +169,6 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
     }
   }
 
-  const isDemoMenu = restaurant.slug === 'demo-burger'
-  const hasPapas = isDemoMenu && cart.items.some((i) => i.productId === 'prod-5')
-  const handleUpsell = () => {
-    if (!isDemoMenu) return
-    cart.addItem(
-      {
-        productId: 'prod-5',
-        name: 'Papas Fritas',
-        price: 2200,
-        quantity: 1,
-      },
-      restaurant.slug
-    )
-  }
 
   const isDelivery = type === 'delivery'
   const submitBusyLabel =
@@ -486,21 +473,6 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
             </div>
           </div>
 
-          {isDemoMenu && !hasPapas && (
-            <div className="bg-muted/50 border border-border p-4 rounded-xl flex items-center justify-between gap-4">
-              <div>
-                <p className="font-semibold text-foreground text-sm">¿Agregamos papas fritas?</p>
-                <p className="text-sm text-muted-foreground mt-0.5">$2.200</p>
-              </div>
-              <button
-                type="button"
-                onClick={handleUpsell}
-                className="bg-primary text-primary-foreground text-sm font-semibold px-4 py-2 rounded-xl hover:opacity-90 transition-opacity shrink-0"
-              >
-                Agregar
-              </button>
-            </div>
-          )}
         </div>
 
         <div className="p-5 pb-safe border-t border-border bg-muted/20 sm:rounded-b-2xl shrink-0 space-y-3">
