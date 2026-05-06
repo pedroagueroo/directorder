@@ -1,13 +1,21 @@
+'use client'
+
+import { useState } from 'react'
 import type { Restaurant } from '@/lib/types/database'
 import Image from 'next/image'
 import Link from 'next/link'
 
-/** Imagen por defecto: hamburguesas y mesa — encaja con la marca */
+/** Preferida si no hay `banner_url` en el local */
 const DEFAULT_BANNER =
   'https://images.unsplash.com/photo-1572802419224-296b224a5eec?auto=format&fit=crop&w=1920&q=88'
 
+/** Respaldo si la URL configurada o la default devuelven error (404, etc.) */
+const FALLBACK_BANNER =
+  'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=1920&q=80'
+
 export default function MenuHeader({ restaurant }: { restaurant: Restaurant }) {
-  const banner = restaurant.banner_url?.trim() || DEFAULT_BANNER
+  const initial = restaurant.banner_url?.trim() || DEFAULT_BANNER
+  const [bannerSrc, setBannerSrc] = useState(initial)
 
   return (
     <header className="relative z-0">
@@ -21,12 +29,13 @@ export default function MenuHeader({ restaurant }: { restaurant: Restaurant }) {
       </div>
       <div className="relative h-[216px] w-full overflow-hidden sm:h-[292px] md:h-[328px] lg:rounded-b-[2rem] shadow-[0_20px_50px_-28px_rgba(45,35,30,0.45)]">
         <Image
-          src={banner}
+          src={bannerSrc}
           alt=""
           fill
           priority
           sizes="100vw"
           className="object-cover object-[center_42%] scale-[1.02]"
+          onError={() => setBannerSrc(FALLBACK_BANNER)}
         />
         {/* Contraste arriba para profundidad */}
         <div

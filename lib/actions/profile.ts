@@ -5,17 +5,31 @@ import { revalidatePath } from 'next/cache'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { getAuthActiveBranchId } from '@/lib/server/auth-restaurant'
 
+async function requireSessionUserId(supabase: ReturnType<typeof createServerSupabase>): Promise<
+  { ok: true; userId: string } | { ok: false; error: string }
+> {
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
+  if (error || !user) {
+    return { ok: false, error: 'Sesión inválida o expirada.' }
+  }
+  const cookieId = cookies().get('auth-user-id')?.value
+  if (cookieId && cookieId !== user.id) {
+    return { ok: false, error: 'Sesión inconsistente. Cerrá sesión y volvé a entrar.' }
+  }
+  return { ok: true, userId: user.id }
+}
+
 export async function updateProfileCredentialsAction(formData: FormData) {
-  const userId = cookies().get('auth-user-id')?.value
-  if (!userId) return { error: 'Sesion invalida.' }
-
   const supabase = createServerSupabase()
+  const session = await requireSessionUserId(supabase)
+  if (!session.ok) return { error: session.error }
 
-  const { data: currentUser } = await supabase
-    .from('users')
-    .select('*')
-    .eq('id', userId)
-    .single()
+  const userId = session.userId
+
+  const { data: currentUser } = await supabase.from('users').select('*').eq('id', userId).single()
 
   if (!currentUser) return { error: 'Usuario no encontrado.' }
 
@@ -39,12 +53,9 @@ export async function updateProfileCredentialsAction(formData: FormData) {
 
     if (existing) return { error: 'Ese email ya esta en uso.' }
 
-    await supabase
-      .from('users')
-      .update({ email })
-      .eq('id', userId)
+    await supabase.from('users').update({ email }).eq('id', userId)
 
-    // Update in Supabase Auth
+    // Update in Supabase Auth (sesión JWT actual — no confiar solo en cookies)
     await supabase.auth.updateUser({ email })
   }
 
@@ -66,17 +77,16 @@ export async function deleteAccountAction(formData: FormData) {
     return { error: 'No se pudo validar el envío. Probá de nuevo.' }
   }
 
-  const userId = cookies().get('auth-user-id')?.value
   const restaurantId = getAuthActiveBranchId()
-  if (!userId || !restaurantId) return { error: 'Sesión inválida.' }
+  if (!restaurantId) return { error: 'Sesión inválida.' }
 
   const supabase = createServerSupabase()
+  const session = await requireSessionUserId(supabase)
+  if (!session.ok) return { error: session.error }
 
-  const { data: restaurant } = await supabase
-    .from('restaurants')
-    .select('*')
-    .eq('id', restaurantId)
-    .single()
+  const userId = session.userId
+
+  const { data: restaurant } = await supabase.from('restaurants').select('*').eq('id', restaurantId).single()
 
   if (!restaurant) return { error: 'No se encontró la cuenta.' }
 
@@ -97,6 +107,8 @@ export async function deleteAccountAction(formData: FormData) {
     const { error } = await supabase.from('restaurants').delete().eq('id', restaurantId)
     if (error) return { error: error.message || 'No se pudo eliminar la cuenta.' }
   }
+
+  await supabase.auth.signOut()
 
   cookies().delete('auth-role')
   cookies().delete('auth-user-id')

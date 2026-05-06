@@ -45,6 +45,7 @@ export async function updateRestaurantSettingsAction(formData: FormData) {
     const geocodeSuffix = String(formData.get('delivery_geocode_suffix') ?? '').trim()
     updates = {
       delivery_fee: Math.max(0, toNumber(formData.get('delivery_fee'), 0)),
+      min_order_amount: Math.max(0, toNumber(formData.get('min_order_amount'), 0)),
       avg_prep_minutes: Math.max(1, Math.round(toNumber(formData.get('avg_prep_minutes'), 30))),
       delivery_enabled: formData.has('delivery_enabled'),
       pickup_enabled: formData.has('pickup_enabled'),
@@ -101,6 +102,7 @@ export async function updateRestaurantSettingsAction(formData: FormData) {
         pickup_enabled: current?.pickup_enabled ?? true,
         table_mode_enabled: current?.table_mode_enabled ?? false,
         delivery_fee: current?.delivery_fee ?? 0,
+        min_order_amount: Number((current as { min_order_amount?: number }).min_order_amount) || 0,
         avg_prep_minutes: current?.avg_prep_minutes ?? 20,
         delivery_geocode_suffix: (current as { delivery_geocode_suffix?: string | null })?.delivery_geocode_suffix ?? null,
         brand_id: user.brand_id,
@@ -149,6 +151,7 @@ export async function updateRestaurantSettingsAction(formData: FormData) {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax' as const,
         path: '/',
+        maxAge: 60 * 60 * 24 * 7,
       }
       cookies().set('auth-active-branch-id', fallback, cOpts)
       cookies().set('auth-restaurant-id', fallback, cOpts)

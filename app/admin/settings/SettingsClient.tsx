@@ -160,6 +160,15 @@ export default function SettingsClient({
               disabled={editableSection !== 'channels'}
             />
             <LabeledInput
+              name="min_order_amount"
+              label="Pedido minimo ($)"
+              type="number"
+              min="0"
+              step="100"
+              defaultValue={restaurant.min_order_amount}
+              disabled={editableSection !== 'channels'}
+            />
+            <LabeledInput
               name="avg_prep_minutes"
               label="Tiempo promedio (min)"
               type="number"

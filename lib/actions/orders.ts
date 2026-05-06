@@ -1,7 +1,18 @@
 'use server'
+import { headers } from 'next/headers'
 import type { CartItem } from '@/store/cart'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { getMenuRestaurantIdFromRow } from '@/lib/server/branches'
+import { assertPublicOrderRateLimit } from '@/lib/server/public-rate-limit'
+
+function sanitizeCustomerName(raw: string): string {
+  return raw
+    .replace(/<[^>]*>/g, '')
+    .replace(/[\u0000-\u001F\u007F]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 120)
+}
 
 type CreateOrderInput = {
   restaurantId: string
@@ -17,6 +28,12 @@ type CreateOrderInput = {
 }
 
 export async function createOrder(input: CreateOrderInput) {
+  const hdrs = headers()
+  const forwarded = hdrs.get('x-forwarded-for')
+  const ipKey =
+    forwarded?.split(',')[0]?.trim() || hdrs.get('x-real-ip')?.trim() || hdrs.get('cf-connecting-ip') || 'unknown'
+  assertPublicOrderRateLimit(`order:${ipKey}`, 5, 60_000)
+
   const supabase = createServerSupabase()
 
   // Validate restaurant
@@ -29,6 +46,19 @@ export async function createOrder(input: CreateOrderInput) {
   if (!restaurant) throw new Error('No se encontró el local.')
   if (!restaurant.is_open) throw new Error('El local está cerrado en este momento.')
   if (!input.items.length) throw new Error('El pedido no puede estar vacío.')
+
+  const customerName = sanitizeCustomerName(input.customerName)
+  if (!customerName) throw new Error('Indicá un nombre válido.')
+
+  if (input.orderType === 'delivery' && !restaurant.delivery_enabled) {
+    throw new Error('El delivery no está disponible en este local.')
+  }
+  if (input.orderType === 'pickup' && !restaurant.pickup_enabled) {
+    throw new Error('El retiro en el local no está disponible.')
+  }
+  if (input.orderType === 'table' && !restaurant.table_mode_enabled) {
+    throw new Error('Los pedidos en mesa no están habilitados.')
+  }
 
   const menuRestaurantId = getMenuRestaurantIdFromRow(
     restaurant as { id: string; menu_source_restaurant_id?: string | null }
@@ -73,12 +103,18 @@ export async function createOrder(input: CreateOrderInput) {
   const total = subtotal + deliveryFee
   const isCash = input.paymentMethod === 'cash'
 
+  const minOrder = Math.max(0, Number(restaurant.min_order_amount) || 0)
+  if (minOrder > 0 && total < minOrder) {
+    const fmt = minOrder.toLocaleString('es-AR', { maximumFractionDigits: 0 })
+    throw new Error(`El pedido mínimo es de $${fmt}. Agregá productos para continuar.`)
+  }
+
   // Create order
   const { data: order, error: orderError } = await supabase
     .from('orders')
     .insert({
       restaurant_id: input.restaurantId,
-      customer_name: input.customerName,
+      customer_name: customerName,
       customer_phone: input.customerPhone ?? null,
       type: input.orderType,
       delivery_address: input.deliveryAddress ?? null,

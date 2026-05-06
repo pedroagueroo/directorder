@@ -4,12 +4,16 @@ import { cookies } from 'next/headers'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { getBranchesForUserId } from '@/lib/server/branches'
 
+/** 7 días — sesión de panel; se renueva al iniciar sesión o cambiar sucursal. */
+const SESSION_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
+
 function setSessionCookies(role: string, userId: string, branchId: string) {
   const opts = {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax' as const,
     path: '/',
+    maxAge: SESSION_COOKIE_MAX_AGE,
   }
   cookies().set('auth-role', role, opts)
   cookies().set('auth-user-id', userId, opts)

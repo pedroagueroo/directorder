@@ -157,7 +157,8 @@ function getAudioContext(): AudioContext | null {
     }
     if (sharedAudioCtx.state === 'suspended') void sharedAudioCtx.resume()
     return sharedAudioCtx
-  } catch {
+  } catch (e) {
+    console.warn('[KDS] AudioContext no disponible:', e)
     return null
   }
 }
@@ -176,7 +177,9 @@ function playNewOrderSound() {
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4)
     osc.start(ctx.currentTime)
     osc.stop(ctx.currentTime + 0.4)
-  } catch {}
+  } catch (e) {
+    console.warn('[KDS] No se pudo reproducir sonido de pedido nuevo:', e)
+  }
 }
 
 function playStatusChangeSound() {
@@ -193,5 +196,7 @@ function playStatusChangeSound() {
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3)
     osc.start(ctx.currentTime)
     osc.stop(ctx.currentTime + 0.3)
-  } catch {}
+  } catch (e) {
+    console.warn('[KDS] No se pudo reproducir sonido de cambio de estado:', e)
+  }
 }

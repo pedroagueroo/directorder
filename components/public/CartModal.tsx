@@ -1,7 +1,7 @@
 'use client'
 import { useCartStore } from '@/store/cart'
 import type { Restaurant } from '@/lib/types/database'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { generateWhatsAppMessage, getWhatsAppUrl } from '@/lib/utils/whatsapp'
 import { createOrder } from '@/lib/actions/orders'
 import { validateDeliveryAddress } from '@/lib/actions/validateAddress'
@@ -9,11 +9,18 @@ import { validateAddressFormat } from '@/lib/utils/address'
 import { deliveryGeocodeHint, resolveDeliveryGeocodeSuffix } from '@/lib/utils/delivery-geocode'
 import toast from 'react-hot-toast'
 
+function initialOrderType(r: Restaurant): 'delivery' | 'pickup' | 'table' {
+  if (r.delivery_enabled) return 'delivery'
+  if (r.pickup_enabled) return 'pickup'
+  if (r.table_mode_enabled) return 'table'
+  return 'pickup'
+}
+
 export default function CartModal({ restaurant, onClose }: { restaurant: Restaurant; onClose: () => void }) {
   const cart = useCartStore()
   const [name, setName] = useState('')
   const [address, setAddress] = useState('')
-  const [type, setType] = useState<'delivery' | 'pickup' | 'table'>('delivery')
+  const [type, setType] = useState<'delivery' | 'pickup' | 'table'>(() => initialOrderType(restaurant))
   const [notes, setNotes] = useState('')
   /** other = transferencia/MP: cocina después de confirmar en el panel. cash = va ya a cocina, cobro pendiente. */
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'other'>('other')
@@ -27,6 +34,15 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
   const tableInputRef = useRef<HTMLInputElement>(null)
   const geocodeSuffix = resolveDeliveryGeocodeSuffix(restaurant)
   const addressHint = deliveryGeocodeHint(restaurant)
+
+  useEffect(() => {
+    setType((prev) => {
+      if (prev === 'delivery' && !restaurant.delivery_enabled) return initialOrderType(restaurant)
+      if (prev === 'pickup' && !restaurant.pickup_enabled) return initialOrderType(restaurant)
+      if (prev === 'table' && !restaurant.table_mode_enabled) return initialOrderType(restaurant)
+      return prev
+    })
+  }, [restaurant])
 
   const handleCheckout = async () => {
     setNameError('')
@@ -74,6 +90,20 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
 
     if (!hasWhatsAppConfigured) {
       toast.error('Este local no tiene WhatsApp configurado.')
+      return
+    }
+
+    const subNow = cart.total()
+    const feeNow =
+      type === 'delivery' && restaurant.delivery_enabled !== false
+        ? Number((restaurant as { delivery_fee?: number }).delivery_fee) || 0
+        : 0
+    const totalNow = subNow + feeNow
+    const minNow = Math.max(0, Number(restaurant.min_order_amount) || 0)
+    if (minNow > 0 && totalNow < minNow) {
+      toast.error(
+        `El pedido mínimo es $${minNow.toLocaleString('es-AR')}. Agregá productos para continuar.`
+      )
       return
     }
 
@@ -167,6 +197,10 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
       ? Number((restaurant as { delivery_fee?: number }).delivery_fee) || 0
       : 0
   const totalWithDelivery = subtotal + deliveryFeeEstimate
+  const minOrder = Math.max(0, Number(restaurant.min_order_amount) || 0)
+  const meetsMinimum = minOrder === 0 || totalWithDelivery >= minOrder
+  const shortfall =
+    minOrder > 0 && totalWithDelivery < minOrder ? minOrder - totalWithDelivery : 0
 
   return (
     <div
@@ -259,12 +293,14 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
             >
               <button
                 type="button"
+                disabled={!restaurant.delivery_enabled}
                 onClick={() => {
+                  if (!restaurant.delivery_enabled) return
                   setType('delivery')
                   setAddressError('')
                   setTableError('')
                 }}
-                className={`min-h-11 touch-manipulation py-2.5 rounded-lg text-sm font-medium transition-colors active:scale-[0.98] ${
+                className={`min-h-11 touch-manipulation py-2.5 rounded-lg text-sm font-medium transition-colors active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none ${
                   type === 'delivery' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -272,12 +308,14 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
               </button>
               <button
                 type="button"
+                disabled={!restaurant.pickup_enabled}
                 onClick={() => {
+                  if (!restaurant.pickup_enabled) return
                   setType('pickup')
                   setAddressError('')
                   setTableError('')
                 }}
-                className={`min-h-11 touch-manipulation py-2.5 rounded-lg text-sm font-medium transition-colors active:scale-[0.98] ${
+                className={`min-h-11 touch-manipulation py-2.5 rounded-lg text-sm font-medium transition-colors active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none ${
                   type === 'pickup' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -466,6 +504,18 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
         </div>
 
         <div className="p-5 pb-safe border-t border-border bg-muted/20 sm:rounded-b-2xl shrink-0 space-y-3">
+          {minOrder > 0 && !meetsMinimum ? (
+            <div
+              role="status"
+              className="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-800/50 px-3 py-2.5 text-sm font-semibold text-amber-950 dark:text-amber-100"
+            >
+              Pedido mínimo:{' '}
+              <span className="tabular-nums">${minOrder.toLocaleString('es-AR')}</span>
+              {' — '}
+              Faltan{' '}
+              <span className="tabular-nums">${shortfall.toLocaleString('es-AR')}</span> para poder enviar.
+            </div>
+          ) : null}
           <div className="space-y-1.5 px-0.5">
             <div className="flex justify-between items-baseline">
               <span className="text-sm text-muted-foreground">Subtotal</span>
@@ -488,7 +538,13 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
           </div>
           <button
             type="button"
-            disabled={cart.items.length === 0 || isSubmitting || !restaurant.is_open || !hasWhatsAppConfigured}
+            disabled={
+              cart.items.length === 0 ||
+              isSubmitting ||
+              !restaurant.is_open ||
+              !hasWhatsAppConfigured ||
+              !meetsMinimum
+            }
             onClick={handleCheckout}
             className="w-full min-h-12 touch-manipulation py-3.5 rounded-xl font-semibold text-[15px] flex justify-center items-center gap-2 transition-opacity bg-[#128C7E] text-white hover:bg-[#0f7a6e] disabled:opacity-40 disabled:pointer-events-none shadow-sm active:scale-[0.99]"
           >
@@ -497,7 +553,9 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
                 ? 'Configurar WhatsApp del local'
                 : !restaurant.is_open
                   ? 'Local cerrado'
-                  : submitBusyLabel ?? 'Enviar pedido por WhatsApp'}
+                  : !meetsMinimum && minOrder > 0
+                    ? `Mínimo $${minOrder.toLocaleString('es-AR')} para enviar`
+                    : submitBusyLabel ?? 'Enviar pedido por WhatsApp'}
             </span>
             {!isSubmitting && (
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

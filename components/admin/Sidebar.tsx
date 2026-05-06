@@ -1,7 +1,17 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, UtensilsCrossed, ShoppingBag, Settings, LogOut, User, Store } from 'lucide-react'
+import {
+  LayoutDashboard,
+  UtensilsCrossed,
+  ShoppingBag,
+  Settings,
+  LogOut,
+  User,
+  Store,
+  Users,
+  Heart,
+} from 'lucide-react'
 import toast from 'react-hot-toast'
 import { logout } from '@/lib/actions/auth'
 
@@ -33,6 +43,20 @@ export default function Sidebar({ hasMultipleBranches }: { hasMultipleBranches: 
          <SidebarLink href="/admin/dashboard" icon={<LayoutDashboard size={20}/>} label="Centro de Control" active={pathname === '/admin/dashboard'} />
          <SidebarLink href="/admin/menu" icon={<UtensilsCrossed size={20}/>} label="Menú" active={pathname === '/admin/menu'} />
          <SidebarLink href="/staff" icon={<ShoppingBag size={20}/>} label="Cocina (KDS)" active={pathname === '/staff'} />
+         <SidebarLink
+           href="/admin/customers"
+           icon={<Users size={20} />}
+           label="Clientes"
+           badge="Próximamente"
+           active={pathname === '/admin/customers'}
+         />
+         <SidebarLink
+           href="/admin/loyalty"
+           icon={<Heart size={20} />}
+           label="Fidelización"
+           badge="Próximamente"
+           active={pathname === '/admin/loyalty'}
+         />
          <SidebarLink href="/admin/settings" icon={<Settings size={20}/>} label="Configuración" active={pathname === '/admin/settings'} />
       </nav>
       
@@ -73,14 +97,39 @@ export default function Sidebar({ hasMultipleBranches }: { hasMultipleBranches: 
   )
 }
 
-function SidebarLink({ href, icon, label, active = false }: { href: string; icon: React.ReactNode; label: string; active?: boolean }) {
+function SidebarLink({
+  href,
+  icon,
+  label,
+  active = false,
+  badge,
+}: {
+  href: string
+  icon: React.ReactNode
+  label: string
+  active?: boolean
+  badge?: string
+}) {
   return (
-    <Link href={href} className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold transition-all ${
-      active 
-      ? 'bg-primary text-primary-foreground shadow-[0_8px_20px_rgba(232,93,4,0.3)] hover:-translate-y-0.5' 
-      : 'text-foreground/70 hover:bg-muted hover:text-foreground'
-    }`}>
-      {icon} {label}
+    <Link
+      href={href}
+      className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold transition-all ${
+        active
+          ? 'bg-primary text-primary-foreground shadow-[0_8px_20px_rgba(232,93,4,0.3)] hover:-translate-y-0.5'
+          : 'text-foreground/70 hover:bg-muted hover:text-foreground'
+      }`}
+    >
+      {icon}
+      <span className="flex-1 min-w-0">{label}</span>
+      {badge ? (
+        <span
+          className={`shrink-0 text-[9px] font-extrabold uppercase tracking-wide opacity-80 ${
+            active ? 'text-primary-foreground/90' : 'text-muted-foreground'
+          }`}
+        >
+          {badge}
+        </span>
+      ) : null}
     </Link>
   )
 }
