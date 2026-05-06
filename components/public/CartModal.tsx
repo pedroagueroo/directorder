@@ -34,6 +34,7 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
   const tableInputRef = useRef<HTMLInputElement>(null)
   const geocodeSuffix = resolveDeliveryGeocodeSuffix(restaurant)
   const addressHint = deliveryGeocodeHint(restaurant)
+  const hasWhatsAppConfigured = !!restaurant.whatsapp?.replace(/\D/g, '')
 
   useEffect(() => {
     setType((prev) => {
@@ -177,7 +178,6 @@ export default function CartModal({ restaurant, onClose }: { restaurant: Restaur
       : isSubmitting
         ? 'Enviando…'
         : null
-  const hasWhatsAppConfigured = !!restaurant.whatsapp?.replace(/\D/g, '')
   const subtotal = cart.total()
   const deliveryFeeEstimate =
     isDelivery && restaurant.delivery_enabled !== false

@@ -19,6 +19,7 @@ export default function SettingsClient({
 }) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
+  const [branchPending, startBranchTransition] = useTransition()
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [primaryColor, setPrimaryColor] = useState(restaurant.primary_color)
@@ -65,14 +66,22 @@ export default function SettingsClient({
             startTransition(async () => {
               setError('')
               setSuccess('')
-              const res = await updateRestaurantSettingsAction(formData)
-              if (res?.error) {
-                setError(res.error)
-                return
+              try {
+                const res = await updateRestaurantSettingsAction(formData)
+                if (res?.error) {
+                  setError(res.error)
+                  return
+                }
+                setSuccess('Datos del local guardados.')
+                setEditableSection(null)
+                router.refresh()
+              } catch (e) {
+                setError(
+                  e instanceof Error
+                    ? e.message
+                    : 'No se pudo guardar. Revisá tu conexión e intentá de nuevo.'
+                )
               }
-              setSuccess('Datos del local guardados.')
-              setEditableSection(null)
-              router.refresh()
             })
           }
         >
@@ -130,14 +139,22 @@ export default function SettingsClient({
             startTransition(async () => {
               setError('')
               setSuccess('')
-              const res = await updateRestaurantSettingsAction(formData)
-              if (res?.error) {
-                setError(res.error)
-                return
+              try {
+                const res = await updateRestaurantSettingsAction(formData)
+                if (res?.error) {
+                  setError(res.error)
+                  return
+                }
+                setSuccess('Canales de atencion guardados.')
+                setEditableSection(null)
+                router.refresh()
+              } catch (e) {
+                setError(
+                  e instanceof Error
+                    ? e.message
+                    : 'No se pudo guardar. Revisá tu conexión e intentá de nuevo.'
+                )
               }
-              setSuccess('Canales de atencion guardados.')
-              setEditableSection(null)
-              router.refresh()
             })
           }
         >
@@ -242,14 +259,22 @@ export default function SettingsClient({
             startTransition(async () => {
               setError('')
               setSuccess('')
-              const res = await updateRestaurantSettingsAction(formData)
-              if (res?.error) {
-                setError(res.error)
-                return
+              try {
+                const res = await updateRestaurantSettingsAction(formData)
+                if (res?.error) {
+                  setError(res.error)
+                  return
+                }
+                setSuccess('Identidad visual guardada.')
+                setEditableSection(null)
+                router.refresh()
+              } catch (e) {
+                setError(
+                  e instanceof Error
+                    ? e.message
+                    : 'No se pudo guardar. Revisá tu conexión e intentá de nuevo.'
+                )
               }
-              setSuccess('Identidad visual guardada.')
-              setEditableSection(null)
-              router.refresh()
             })
           }
         >
@@ -287,16 +312,24 @@ export default function SettingsClient({
           <h2 className="text-xl font-black tracking-tight">Sucursales</h2>
           <form
             action={(formData) =>
-              startTransition(async () => {
+              startBranchTransition(async () => {
                 setError('')
                 setSuccess('')
-                const res = await updateRestaurantSettingsAction(formData)
-                if (res?.error) {
-                  setError(res.error)
-                  return
+                try {
+                  const res = await updateRestaurantSettingsAction(formData)
+                  if (res?.error) {
+                    setError(res.error)
+                    return
+                  }
+                  setSuccess('Sucursal creada correctamente.')
+                  router.refresh()
+                } catch (e) {
+                  setError(
+                    e instanceof Error
+                      ? e.message
+                      : 'No se pudo crear la sucursal. Revisá tu conexión e intentá de nuevo.'
+                  )
                 }
-                setSuccess('Sucursal creada correctamente.')
-                router.refresh()
               })
             }
           >
@@ -314,7 +347,7 @@ export default function SettingsClient({
                 </div>
                 <Check name="branch_share_menu" label="Compartir menú con la sucursal actual" defaultChecked />
                 <SectionSaveButton
-                  pending={isPending}
+                  pending={branchPending}
                   label="Crear sucursal"
                   submitName="section"
                   submitValue="branch_create"
@@ -345,16 +378,24 @@ export default function SettingsClient({
                 {isOwner && b.id !== restaurant.id ? (
                   <form
                     action={(formData) =>
-                      startTransition(async () => {
+                      startBranchTransition(async () => {
                         setError('')
                         setSuccess('')
-                        const res = await updateRestaurantSettingsAction(formData)
-                        if (res?.error) {
-                          setError(res.error)
-                          return
+                        try {
+                          const res = await updateRestaurantSettingsAction(formData)
+                          if (res?.error) {
+                            setError(res.error)
+                            return
+                          }
+                          setSuccess('Sucursal eliminada.')
+                          router.refresh()
+                        } catch (e) {
+                          setError(
+                            e instanceof Error
+                              ? e.message
+                              : 'No se pudo eliminar la sucursal. Revisá tu conexión e intentá de nuevo.'
+                          )
                         }
-                        setSuccess('Sucursal eliminada.')
-                        router.refresh()
                       })
                     }
                     className="shrink-0"
@@ -362,14 +403,15 @@ export default function SettingsClient({
                     <input type="hidden" name="section" value={`branch_delete:${b.id}`} />
                     <button
                       type="submit"
-                      className="px-3 py-2 rounded-lg border border-rose-300 text-rose-700 text-sm font-semibold bg-rose-50 hover:bg-rose-100"
+                      disabled={branchPending}
+                      className="px-3 py-2 rounded-lg border border-rose-300 text-rose-700 text-sm font-semibold bg-rose-50 hover:bg-rose-100 disabled:opacity-60"
                       onClick={(e) => {
                         if (!confirm(`¿Eliminar sucursal "${b.name}"?`)) {
                           e.preventDefault()
                         }
                       }}
                     >
-                      Eliminar
+                      {branchPending ? 'Eliminando…' : 'Eliminar'}
                     </button>
                   </form>
                 ) : null}

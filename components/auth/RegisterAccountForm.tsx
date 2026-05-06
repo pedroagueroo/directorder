@@ -46,6 +46,7 @@ export default function RegisterAccountForm({
       return
     }
 
+    let navigatedAway = false
     try {
       const formData = new FormData()
       formData.append('restaurant_name', restaurantName)
@@ -60,16 +61,29 @@ export default function RegisterAccountForm({
       formData.append('_company_website', hp?.value ?? '')
 
       const res = await register(formData)
-      if (res.error) {
-        setError(res.error)
-      } else {
+      if (!res || typeof res !== 'object') {
+        setError('Respuesta inválida del servidor. Refrescá la página e intentá de nuevo.')
+        return
+      }
+      const errMsg = 'error' in res ? res.error : undefined
+      if (errMsg != null && String(errMsg).trim() !== '') {
+        setError(String(errMsg))
+        return
+      }
+      if ('role' in res) {
         const dest = res.role === 'owner' ? '/admin/dashboard' : '/staff'
+        navigatedAway = true
         window.location.assign(dest)
+      } else {
+        setError('No se pudo crear la cuenta. Probá de nuevo.')
       }
     } catch {
       setError('No se pudo crear la cuenta. Probá de nuevo.')
+    } finally {
+      if (!navigatedAway) {
+        setLoading(false)
+      }
     }
-    setLoading(false)
   }
 
   const buttonClass =

@@ -104,10 +104,19 @@ export default function DashboardClient({
                 setToggleError('')
                 const next = !isOpen
                 setIsOpen(next)
-                const res = await setRestaurantOpenAction(next)
-                if (res?.error) {
+                try {
+                  const res = await setRestaurantOpenAction(next)
+                  if (res?.error) {
+                    setIsOpen(!next)
+                    setToggleError(res.error)
+                  }
+                } catch (e) {
                   setIsOpen(!next)
-                  setToggleError(res.error)
+                  setToggleError(
+                    e instanceof Error
+                      ? e.message
+                      : 'No se pudo actualizar el estado del local. Probá de nuevo.'
+                  )
                 }
               })
             }

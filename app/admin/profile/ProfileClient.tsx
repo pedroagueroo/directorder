@@ -70,18 +70,26 @@ export default function ProfileClient({
           startTransition(async () => {
             setError('')
             setSuccess('')
-            const res = await updateProfileCredentialsAction(formData)
-            if (res?.error) {
-              setError(res.error)
-              return
+            try {
+              const res = await updateProfileCredentialsAction(formData)
+              if (res?.error) {
+                setError(res.error)
+                return
+              }
+              setSuccess('Perfil actualizado correctamente.')
+              setShowEditOptions(false)
+              setEditMode('none')
+              setCurrentPassword('')
+              setNewPassword('')
+              setConfirmNewPassword('')
+              router.refresh()
+            } catch (e) {
+              setError(
+                e instanceof Error
+                  ? e.message
+                  : 'No se pudo guardar el perfil. Revisá tu conexión e intentá de nuevo.'
+              )
             }
-            setSuccess('Perfil actualizado correctamente.')
-            setShowEditOptions(false)
-            setEditMode('none')
-            setCurrentPassword('')
-            setNewPassword('')
-            setConfirmNewPassword('')
-            router.refresh()
           })
         }
         className="rounded-[2rem] border border-border/80 bg-gradient-to-br from-card to-muted/30 p-5 sm:p-7 space-y-4 shadow-sm"
@@ -268,12 +276,20 @@ export default function ProfileClient({
                 formData.set('delete_password', deletePassword)
                 formData.set('confirm_restaurant_name', deleteConfirmName)
                 formData.set('delete_accept', deleteAccept ? 'on' : '')
-                const res = await deleteAccountAction(formData)
-                if (res?.error) {
-                  setDeleteError(res.error)
-                  return
+                try {
+                  const res = await deleteAccountAction(formData)
+                  if (res?.error) {
+                    setDeleteError(res.error)
+                    return
+                  }
+                  window.location.assign('/?cuenta=eliminada')
+                } catch (e) {
+                  setDeleteError(
+                    e instanceof Error
+                      ? e.message
+                      : 'No se pudo eliminar la cuenta. Revisá tu conexión e intentá de nuevo.'
+                  )
                 }
-                window.location.assign('/?cuenta=eliminada')
               })
             }
           >

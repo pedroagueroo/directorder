@@ -20,9 +20,10 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
 
+    let navigatedAway = false
     try {
       const formData = new FormData()
-      formData.append('email', email)
+      formData.append('email', email.trim().toLowerCase())
       formData.append('password', password)
 
       const res = await login(formData)
@@ -30,8 +31,9 @@ export default function LoginPage() {
         setError('Respuesta inválida del servidor. Refrescá la página e intentá de nuevo.')
         return
       }
-      if ('error' in res && res.error) {
-        setError(String(res.error))
+      const errMsg = 'error' in res ? res.error : undefined
+      if (errMsg != null && String(errMsg).trim() !== '') {
+        setError(String(errMsg))
         return
       }
       const roleRaw = 'role' in res ? String(res.role) : 'owner'
@@ -42,6 +44,7 @@ export default function LoginPage() {
         : roleRaw === 'owner'
           ? '/admin/dashboard'
           : '/staff'
+      navigatedAway = true
       window.location.assign(dest)
     } catch (e) {
       const detail = e instanceof Error ? e.message : ''
@@ -50,8 +53,11 @@ export default function LoginPage() {
           ? `Error de conexión: ${detail}`
           : 'No se pudo iniciar sesión (red o servidor). Probá de nuevo.'
       )
+    } finally {
+      if (!navigatedAway) {
+        setLoading(false)
+      }
     }
-    setLoading(false)
   }
 
   return (
